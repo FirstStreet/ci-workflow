@@ -38,6 +38,8 @@ jobs:
     permissions:
       contents: read
       packages: write
+    outputs:
+      appenv: ${{ steps.setappenv.outputs.env }}
 
     steps:
       - name: Checkout repository
@@ -88,9 +90,19 @@ jobs:
         run: |
           rm -rf /tmp/.buildx-cache
           mv /tmp/.buildx-cache-new /tmp/.buildx-cache
+
+      - id: setappenv
+        run: |
+          if [[ "$GITHUB_REF_NAME" == *"develop"* ]]; then
+            echo "::set-output env=development"
+          elif [[ "$GITHUB_REF_NAME" == *"master"* ]]; then
+            echo "::set-output env=production"
+          fi
+
   Deploy:
     needs: [Build]
     runs-on: self-hosted
+    environment: ${{needs.Build.outputs.appenv}}
     steps:
       - uses: actions/checkout@v2
         with:
