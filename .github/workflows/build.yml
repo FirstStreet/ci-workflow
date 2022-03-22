@@ -1,6 +1,4 @@
-# main.yml handles build and deployment via branches
-# for production build, see deploy.yml
-name: Build
+name: Build and Deploy Branch
 on:
   workflow_call:
     inputs:
@@ -10,7 +8,6 @@ on:
       helm_name:
         required: true
         type: string
-
 
 env:
   REGISTRY: ghcr.io
