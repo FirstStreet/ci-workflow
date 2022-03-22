@@ -1,7 +1,9 @@
-# CI Workflow
+# FSF CI Workflow
 
-This follows the workflow outlined in Figma (dev/workflow).
+This workflow describes the steps outlined in First Street's deployment pipeline.
 
-Branch --> Deploy (develop/[master|main])
+From branches, deployments are handled directly if the branch name matches expected patterns.
 
-Tag --> Deploy to production. Tags must be signed.
+From tags, deployments are sent to production if the tag is signed by the correct authority.
+
+
