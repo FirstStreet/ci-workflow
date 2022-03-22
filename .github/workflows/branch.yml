@@ -8,6 +8,15 @@ on:
       helm_name:
         required: true
         type: string
+      dev_ns:
+        required: true
+        type: string
+      stg_ns:
+        required: true
+        type: string
+      prod_ns:
+        required: true
+        type: string
     secrets:
       AWS_ACCESS_KEY_ID:
         required: true
@@ -19,6 +28,9 @@ env:
   IMAGE_NAME: ${{ github.repository }}
   APP_NAME: ${{ inputs.appname }}
   HELM_NAME: ${{ inputs.helm_name }}
+  DEV_NS: ${{ inputs.dev_ns }}
+  STG_NS: ${{ inputs.stg_ns }}
+  PROD_NS: ${{ inputs.prod_ns }}
 
 jobs:
   Build:
@@ -93,12 +105,12 @@ jobs:
           if [[ "$GITHUB_REF_NAME" == *"develop"* ]]; then
             echo "VALUES=_k/${HELM_NAME}/values-dev.yaml" >> $GITHUB_ENV
             echo "CONF_ENV=dev" >> $GITHUB_ENV
-            echo "NAMESPACE=fsfapi-dev" >> $GITHUB_ENV
+            echo "NAMESPACE=${DEV_NS}" >> $GITHUB_ENV
           elif [[ "$GITHUB_REF_NAME" == *"master"* ]]; then
             # TODO: Switch to prod
             echo "VALUES=_k/${HELM_NAME}/values-dev.yaml" >> $GITHUB_ENV
             echo "CONF_ENV=dev" >> $GITHUB_ENV
-            echo "NAMESPACE=fsfapi-dev" >> $GITHUB_ENV
+            echo "NAMESPACE=${DEV_NS}" >> $GITHUB_ENV
           fi
 
       - uses: azure/setup-kubectl@v1
