@@ -1,0 +1,127 @@
+# main.yml handles build and deployment via branches
+# for production build, see deploy.yml
+name: Build
+on:
+  workflow_call:
+    inputs:
+      appname:
+        required: true
+        type: string
+      helm_name:
+        required: true
+        type: string
+
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+  APP_NAME: ${{ inputs.appname }}
+  HELM_NAME: ${{ inputs.helm_name }}
+
+jobs:
+  Build:
+    runs-on: [self-hosted, linux]
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Setup buildx
+        uses: docker/setup-buildx-action@v1
+        id: buildx
+        with:
+          install: true
+
+      - name: Cache Docker layers
+        uses: actions/cache@v2
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-
+            
+      - name: Log in to the Container registry
+        uses: docker/login-action@v1
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@v3
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=sha,format=long
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache-new
+
+      - name: Move cache
+        run: |
+          rm -rf /tmp/.buildx-cache
+          mv /tmp/.buildx-cache-new /tmp/.buildx-cache
+  Deploy:
+    needs: [Build]
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Prepare deployment
+        env:
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+
+        run: |
+          # Release .dev tags and `master` branch puches to develop
+          if [[ "$GITHUB_REF_NAME" == *"develop"* ]]; then
+            echo "VALUES=_k/${HELM_NAME}/values-dev.yaml" >> $GITHUB_ENV
+            echo "CONF_ENV=dev" >> $GITHUB_ENV
+            echo "NAMESPACE=fsfapi-dev" >> $GITHUB_ENV
+          elif [[ "$GITHUB_REF_NAME" == *"master"* ]]; then
+            # TODO: Switch to prod
+            echo "VALUES=_k/${HELM_NAME}/values-dev.yaml" >> $GITHUB_ENV
+            echo "CONF_ENV=dev" >> $GITHUB_ENV
+            echo "NAMESPACE=fsfapi-dev" >> $GITHUB_ENV
+          fi
+
+      - uses: azure/setup-kubectl@v1
+        with:
+          version: "v1.22.4"
+
+      - uses: actions/setup-node@v2
+      - uses: azure/setup-helm@v1
+        with:
+          version: "v3.2.1" # default is latest stable
+
+      - name: AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Deploy
+        run: |
+          aws eks update-kubeconfig --name fsf-prod
+          helm plugin remove ssm || true
+          helm plugin add https://github.com/seripap/helm-ssm || true
+          helm ssm -f $VALUES
+          sed -i "s/^appVersion:.*$/appVersion: \"$(git describe)\"/" _k/$APP_NAME/Chart.yaml
+          helm upgrade $APP_NAME _k/$APP_NAME --install --namespace $NAMESPACE --set app.config=$CONF_ENV,app.image.tag=$GITHUB_SHA,volume.path=$CONF_ENV.conf -f $VALUES --wait --timeout 60s
+
+
