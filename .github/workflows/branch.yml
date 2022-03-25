@@ -17,6 +17,10 @@ on:
       prod_ns:
         required: true
         type: string
+      simple_deploy:
+        default: false
+        required: false
+        type: boolean
     secrets:
       AWS_ACCESS_KEY_ID:
         required: true
@@ -31,6 +35,7 @@ env:
   DEV_NS: ${{ inputs.dev_ns }}
   STG_NS: ${{ inputs.stg_ns }}
   PROD_NS: ${{ inputs.prod_ns }}
+  SIMPLE_DEPLOY: ${{ inputs.simple_deploy }}
 
 jobs:
   Build:
@@ -148,6 +153,10 @@ jobs:
           helm plugin add https://github.com/seripap/helm-ssm || true
           helm ssm -f $VALUES
           sed -i "s/^appVersion:.*$/appVersion: \"$(git describe)\"/" _k/$APP_NAME/Chart.yaml
-          helm upgrade $APP_NAME _k/$APP_NAME --install --namespace $NAMESPACE --set app.config=$CONF_ENV,volume.path=$CONF_ENV.conf,app.image.tag=sha-$GITHUB_SHA -f $VALUES --wait --timeout 60s --debug
+          if [[ $SIMPLE_DEPLOY ]]; then
+            helm upgrade $APP_NAME _k/$APP_NAME --install --namespace $NAMESPACE --set app.image.tag=sha-$GITHUB_SHA -f $VALUES --wait --timeout 60s
+          else
+            helm upgrade $APP_NAME _k/$APP_NAME --install --namespace $NAMESPACE --set app.config=$CONF_ENV,volume.path=$CONF_ENV.conf,app.image.tag=sha-$GITHUB_SHA -f $VALUES --wait --timeout 60s --debug
+          fi
 
 
