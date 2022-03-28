@@ -17,6 +17,10 @@ on:
       prod_ns:
         required: true
         type: string
+      use_ssm:
+        default: true
+        required: false
+        type: boolean
       simple_deploy:
         default: false
         required: false
@@ -36,6 +40,7 @@ env:
   STG_NS: ${{ inputs.stg_ns }}
   PROD_NS: ${{ inputs.prod_ns }}
   SIMPLE_DEPLOY: ${{ inputs.simple_deploy }}
+  USE_SSM: ${{ inputs.use_ssm }}
 
 jobs:
   Build:
@@ -149,10 +154,14 @@ jobs:
       - name: Deploy
         run: |
           aws eks update-kubeconfig --name fsf-prod
-          helm plugin remove ssm || true
-          helm plugin add https://github.com/seripap/helm-ssm || true
-          helm ssm -f $VALUES
+          if [[ $USE_SSM ]]; then
+            helm plugin remove ssm || true
+            helm plugin add https://github.com/seripap/helm-ssm || true
+            helm ssm -f $VALUES
+          fi
+
           sed -i "s/^appVersion:.*$/appVersion: \"$(git describe)\"/" _k/$APP_NAME/Chart.yaml
+
           if [[ $SIMPLE_DEPLOY ]]; then
             helm upgrade $APP_NAME _k/$APP_NAME --install --namespace $NAMESPACE --set app.image.tag=sha-$GITHUB_SHA -f $VALUES --wait --timeout 60s
           else
