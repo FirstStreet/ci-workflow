@@ -1,6 +1,10 @@
 name: Build and Deploy Branch
 on:
   workflow_call:
+    branches:
+      - main
+      - master
+      - develop
     inputs:
       appname:
         required: true
@@ -30,10 +34,6 @@ on:
         required: true
       AWS_SECRET_ACCESS_KEY:
         required: true
-  branches:
-    - main
-    - master
-    - develop
 
 env:
   REGISTRY: ghcr.io
