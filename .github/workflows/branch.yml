@@ -1,10 +1,6 @@
 name: Build and Deploy Branch
 on:
   workflow_call:
-    branches:
-      - main
-      - master
-      - develop
     inputs:
       appname:
         required: true
