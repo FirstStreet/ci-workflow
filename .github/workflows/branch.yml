@@ -30,6 +30,10 @@ on:
         required: true
       AWS_SECRET_ACCESS_KEY:
         required: true
+  branches:
+    - main
+    - master
+    - develop
 
 env:
   REGISTRY: ghcr.io
