@@ -44,7 +44,7 @@ env:
 
 jobs:
   Build:
-    runs-on: [self-hosted, linux]
+    runs-on: [fyre, linux]
     permissions:
       contents: read
       packages: write
@@ -52,6 +52,7 @@ jobs:
       appenv: ${{ steps.setappenv.outputs.env }}
 
     steps:
+      - uses: docker-practice/actions-setup-docker@master
       - name: Checkout repository
         uses: actions/checkout@v2
 
@@ -111,7 +112,7 @@ jobs:
 
   Deploy:
     needs: [Build]
-    runs-on: self-hosted
+    runs-on: [self-hosted, linux]
     environment: ${{needs.Build.outputs.appenv}}
     steps:
       - uses: actions/checkout@v2
