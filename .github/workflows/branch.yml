@@ -44,7 +44,7 @@ env:
 
 jobs:
   Build:
-    runs-on: [buildbox]
+    runs-on: [self-hosted, buildbox]
     permissions:
       contents: read
       packages: write
