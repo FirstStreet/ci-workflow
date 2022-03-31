@@ -44,7 +44,7 @@ env:
 
 jobs:
   Build:
-    runs-on: [fyre, enron, linux]
+    runs-on: [buildbox]
     permissions:
       contents: read
       packages: write
