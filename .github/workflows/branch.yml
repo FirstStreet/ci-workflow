@@ -52,6 +52,9 @@ jobs:
       appenv: ${{ steps.setappenv.outputs.env }}
 
     steps:
+      - name: checkout
+        uses: actions/checkout@v2
+
       - name: Setup buildx
         uses: docker/setup-buildx-action@v1
         id: buildx
@@ -112,8 +115,6 @@ jobs:
     environment: ${{needs.Build.outputs.appenv}}
     steps:
       - uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
 
       - name: Prepare deployment
         env:
