@@ -52,10 +52,6 @@ jobs:
       appenv: ${{ steps.setappenv.outputs.env }}
 
     steps:
-      - uses: docker-practice/actions-setup-docker@master
-      - name: Checkout repository
-        uses: actions/checkout@v2
-
       - name: Setup buildx
         uses: docker/setup-buildx-action@v1
         id: buildx
