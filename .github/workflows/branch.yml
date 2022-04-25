@@ -53,8 +53,8 @@ jobs:
     permissions:
       contents: read
       packages: write
-    outputs:
-      appenv: ${{ steps.setappenv.outputs.env }}
+    # outputs:
+    #   appenv: ${{ steps.setappenv.outputs.env }}
 
     steps:
       - name: checkout
@@ -107,18 +107,19 @@ jobs:
           rm -rf /tmp/.buildx-cache
           mv /tmp/.buildx-cache-new /tmp/.buildx-cache
 
-      - id: setappenv
-        run: |
-          if [[ "$GITHUB_REF_NAME" == *"develop"* ]]; then
-            echo "::set-output name=DEPLOY_ENV::development"
-          elif [[ "$GITHUB_REF_NAME" == *"master"* ]]; then
-            echo "::set-output name=DEPLOY_ENV::production"
-          fi
+      # This only works for pub repos
+      # - id: setappenv
+      #   run: |
+      #     if [[ "$GITHUB_REF_NAME" == *"develop"* ]]; then
+      #       echo "::set-output name=DEPLOY_ENV::development"
+      #     elif [[ "$GITHUB_REF_NAME" == *"master"* ]]; then
+      #       echo "::set-output name=DEPLOY_ENV::production"
+      #     fi
 
   Deploy:
     needs: [Build]
     runs-on: [self-hosted, linux]
-    environment: ${{needs.Build.outputs.appenv}}
+    # environment: ${{needs.Build.outputs.appenv}}
     steps:
       - uses: actions/checkout@v2
 
@@ -128,11 +129,11 @@ jobs:
 
         run: |
           # Release .dev tags and `master` branch puches to develop
-          if [[ $DEPLOY_ENV == *"develop"* ]]; then
+          if [[ "$GITHUB_REF_NAME" == *"develop"* ]]; then
             echo "VALUES=_k/${HELM_NAME}/values-dev.yaml" >> $GITHUB_ENV
             echo "CONF_ENV=dev" >> $GITHUB_ENV
             echo "NAMESPACE=${DEV_NS}" >> $GITHUB_ENV
-          elif [[ $DEPLOY_ENV == *"master"* ]]; then
+          elif [[ "$GITHUB_REF_NAME"  == *"master"* ]]; then
             echo "VALUES=_k/${HELM_NAME}/values-prod.yaml" >> $GITHUB_ENV
             echo "CONF_ENV=prod" >> $GITHUB_ENV
             echo "NAMESPACE=${PROD_NS}" >> $GITHUB_ENV
@@ -153,6 +154,11 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
+
+      - name: Deploying Namespace
+        run: |
+          echo $NAMESPACE
+          echo $VALUES
 
       - name: Deploy
         run: |
