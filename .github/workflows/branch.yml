@@ -110,9 +110,9 @@ jobs:
       - id: setappenv
         run: |
           if [[ "$GITHUB_REF_NAME" == *"develop"* ]]; then
-            echo "::set-output env=development"
+            echo "::set-output name=DEPLOY_ENV::development"
           elif [[ "$GITHUB_REF_NAME" == *"master"* ]]; then
-            echo "::set-output env=production"
+            echo "::set-output name=DEPLOY_ENV::production"
           fi
 
   Deploy:
@@ -128,15 +128,14 @@ jobs:
 
         run: |
           # Release .dev tags and `master` branch puches to develop
-          if [[ "$GITHUB_REF_NAME" == *"develop"* ]]; then
+          if [[ $DEPLOY_ENV == *"develop"* ]]; then
             echo "VALUES=_k/${HELM_NAME}/values-dev.yaml" >> $GITHUB_ENV
             echo "CONF_ENV=dev" >> $GITHUB_ENV
             echo "NAMESPACE=${DEV_NS}" >> $GITHUB_ENV
-          elif [[ "$GITHUB_REF_NAME" == *"master"* ]]; then
-            # TODO: Switch to prod
-            echo "VALUES=_k/${HELM_NAME}/values-dev.yaml" >> $GITHUB_ENV
-            echo "CONF_ENV=dev" >> $GITHUB_ENV
-            echo "NAMESPACE=${DEV_NS}" >> $GITHUB_ENV
+          elif [[ $DEPLOY_ENV == *"master"* ]]; then
+            echo "VALUES=_k/${HELM_NAME}/values-prod.yaml" >> $GITHUB_ENV
+            echo "CONF_ENV=prod" >> $GITHUB_ENV
+            echo "NAMESPACE=${PROD_NS}" >> $GITHUB_ENV
           fi
 
       - uses: azure/setup-kubectl@v1
