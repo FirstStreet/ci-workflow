@@ -146,7 +146,7 @@ jobs:
             echo "NAMESPACE=${DEV_NS}" >> $GITHUB_ENV
           elif [[ "$GITHUB_REF_NAME"  == *"next"* ]]; then
             echo "VALUES=_k/${HELM_NAME}/values-next.yaml" >> $GITHUB_ENV
-            echo "CONF_ENV=prod" >> $GITHUB_ENV
+            echo "CONF_ENV=next" >> $GITHUB_ENV
             echo "NAMESPACE=${PROD_NS}" >> $GITHUB_ENV
           fi
 
