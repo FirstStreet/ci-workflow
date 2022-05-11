@@ -52,10 +52,6 @@ env:
   DOCKERFILE: ${{ inputs.dockerfile }}
   SHOULD_RELEASE: ${{ inputs.release }}
 
-concurrency:
-  group: build-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
-
 jobs:
   Build:
     runs-on: [self-hosted, buildbox]
