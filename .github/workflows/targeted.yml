@@ -11,9 +11,9 @@ on:
       namespace:
         required: true
         type: string
-      config:
+      helm_config:
         required: true
-        type: boolean
+        type: string
       use_ssm:
         default: true
         required: false
@@ -38,7 +38,7 @@ env:
   APP_NAME: ${{ inputs.appname }}
   HELM_NAME: ${{ inputs.helm_name }}
   NAMESPACE: ${{ inputs.namespace }}
-  HELM_CONFIG: ${{ inputs.config }}
+  HELM_CONFIG: ${{ inputs.helm_config }}
   SIMPLE_DEPLOY: ${{ inputs.simple_deploy }}
   USE_SSM: ${{ inputs.use_ssm }}
   DOCKERFILE: ${{ inputs.dockerfile }}
