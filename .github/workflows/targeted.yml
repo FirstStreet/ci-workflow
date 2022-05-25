@@ -161,7 +161,7 @@ jobs:
           sed -i "s/^appVersion:.*$/appVersion: \"$(git describe)\"/" _k/$APP_NAME/Chart.yaml
 
           if [[ $SIMPLE_DEPLOY == true ]]; then
-            helm upgrade $APP_NAME _k/$APP_NAME --install --namespace $NAMESPACE --set app.image.tag=sha-$GITHUB_SHA -f $VALUES --wait --timeout 120s
+            helm upgrade $APP_NAME _k/$APP_NAME --install --namespace $NAMESPACE --set app.image.tag=sha-$GITHUB_SHA -f $VALUES --wait --timeout 300s --debug
           else
-            helm upgrade $APP_NAME _k/$APP_NAME --install --namespace $NAMESPACE --set app.config=$CONF_ENV,volume.path=$CONF_ENV.conf,app.image.tag=sha-$GITHUB_SHA -f $VALUES --wait --timeout 120s --debug
+            helm upgrade $APP_NAME _k/$APP_NAME --install --namespace $NAMESPACE --set app.config=$CONF_ENV,volume.path=$CONF_ENV.conf,app.image.tag=sha-$GITHUB_SHA -f $VALUES --wait --timeout 300s --debug
           fi
