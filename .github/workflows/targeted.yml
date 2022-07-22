@@ -45,7 +45,7 @@ env:
 
 jobs:
   Build:
-    runs-on: [self-hosted, buildbox]
+    runs-on: [self-hosted, buildbox, ubuntu-latest]
     permissions:
       contents: read
       packages: write
@@ -114,7 +114,7 @@ jobs:
 
   Deploy:
     needs: [Build]
-    runs-on: [self-hosted, linux]
+    runs-on: [self-hosted, ubuntu-latest]
     # environment: ${{needs.Build.outputs.appenv}}
     steps:
       - uses: actions/checkout@v2
