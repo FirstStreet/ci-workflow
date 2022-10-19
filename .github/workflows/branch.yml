@@ -138,7 +138,7 @@ jobs:
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
 
         run: |
-          if [[ "$SHOULD_RELEASE" == true ]] || [[ "$GITHUB_REF_NAME"  == *"master"* ]] || [[ "$GITHUB_REF_NAME" == *"main"* ]]; then
+          if [[ "$SHOULD_RELEASE" == true ]] || [[ "$GITHUB_REF_NAME"  == *"master"* ]] || [[ "$GITHUB_REF_NAME" == *"main"* ]] || [[ "$GITHUB_REF_NAME" == *"nextprod"* ]]; then
             echo "VALUES=_k/${HELM_NAME}/values-prod.yaml" >> $GITHUB_ENV
             echo "CONF_ENV=prod" >> $GITHUB_ENV
             echo "NAMESPACE=${PROD_NS}" >> $GITHUB_ENV
