@@ -138,7 +138,7 @@ jobs:
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
 
         run: |
-          if [[ "$SHOULD_RELEASE" == true ]] || [[ "$GITHUB_REF_NAME"  == *"master"* ]] || [[ "$GITHUB_REF_NAME" == *"main"* ]]; then
+          if [[ "$SHOULD_RELEASE" == true ]] || [[ "$GITHUB_REF_NAME"  == *"master"* ]] || [[ "$GITHUB_REF_NAME" == *"main"* ]] || [[ "$GITHUB_REF_NAME" == *"nextprod"* ]]; then
             echo "VALUES=_k/${HELM_NAME}/values-prod.yaml" >> $GITHUB_ENV
             echo "CONF_ENV=prod" >> $GITHUB_ENV
             echo "NAMESPACE=${PROD_NS}" >> $GITHUB_ENV
@@ -153,7 +153,7 @@ jobs:
             echo "VALUES=_k/${HELM_NAME}/values-next.yaml" >> $GITHUB_ENV
             echo "CONF_ENV=next" >> $GITHUB_ENV
             echo "NAMESPACE=${PROD_NS}" >> $GITHUB_ENV
-          elif [[ "$GITHUB_REF_NAME"  == *"staging"* ]]; then
+          elif [[ "$GITHUB_REF_NAME"  == *"staging"* ]] || [[ "$GITHUB_REF_NAME"  == *"nextstaging"* ]]; then
             echo "VALUES=_k/${HELM_NAME}/values-stage.yaml" >> $GITHUB_ENV
             echo "CONF_ENV=stage" >> $GITHUB_ENV
             echo "NAMESPACE=${STG_NS}" >> $GITHUB_ENV
