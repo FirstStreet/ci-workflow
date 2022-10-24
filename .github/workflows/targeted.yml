@@ -66,9 +66,9 @@ jobs:
         uses: actions/cache@v2
         with:
           path: /tmp/.buildx-cache
-          key: ${{ runner.os }}-buildx-${{ github.sha }}-v2
+          key: ${{ runner.os }}-buildx-${{ github.sha }}-${{ env.NAMESPACE }}
           restore-keys: |
-            ${{ runner.os }}-buildx-${{ github.sha }}-v2
+            ${{ runner.os }}-buildx-${{ github.sha }}-${{ env.NAMESPACE }}
 
       - name: Log in to the Container registry
         uses: docker/login-action@v1
@@ -85,7 +85,7 @@ jobs:
           tags: |
             type=ref,event=branch
             type=ref,event=pr
-            type=sha,format=long
+            type=sha,format=long,suffix=${{ env.NAMESPACE }}
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v2
@@ -161,7 +161,7 @@ jobs:
           sed -i "s/^appVersion:.*$/appVersion: \"$(git describe)\"/" _k/$APP_NAME/Chart.yaml
 
           if [[ $SIMPLE_DEPLOY == true ]]; then
-            helm upgrade $APP_NAME _k/$APP_NAME --install --namespace $NAMESPACE --set app.image.tag=sha-$GITHUB_SHA -f $VALUES --wait --timeout 300s --debug
+            helm upgrade $APP_NAME _k/$APP_NAME --install --namespace $NAMESPACE --set app.image.tag=sha-$GITHUB_SHA-$NAMESPACE -f $VALUES --wait --timeout 300s --debug
           else
-            helm upgrade $APP_NAME _k/$APP_NAME --install --namespace $NAMESPACE --set app.config=$CONF_ENV,volume.path=$CONF_ENV.conf,app.image.tag=sha-$GITHUB_SHA -f $VALUES --wait --timeout 300s --debug
+            helm upgrade $APP_NAME _k/$APP_NAME --install --namespace $NAMESPACE --set app.config=$CONF_ENV,volume.path=$CONF_ENV.conf,app.image.tag=sha-$GITHUB_SHA-$NAMESPACE -f $VALUES --wait --timeout 300s --debug
           fi
