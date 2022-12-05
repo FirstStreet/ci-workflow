@@ -139,22 +139,22 @@ jobs:
 
         run: |
           if [[ "$SHOULD_RELEASE" == true ]] || [[ "$GITHUB_REF_NAME"  == *"master"* ]] || [[ "$GITHUB_REF_NAME" == *"main"* ]] || [[ "$GITHUB_REF_NAME" == *"nextprod"* ]]; then
-            echo "VALUES=_k/${HELM_NAME}/values-prod.yaml" >> $GITHUB_ENV
+            echo "VALUES=_k/${APP_NAME}/values-prod.yaml" >> $GITHUB_ENV
             echo "CONF_ENV=prod" >> $GITHUB_ENV
             echo "NAMESPACE=${PROD_NS}" >> $GITHUB_ENV
             exit 0
           fi
 
           if [[ "$GITHUB_REF_NAME" == *"develop"* ]]; then
-            echo "VALUES=_k/${HELM_NAME}/values-dev.yaml" >> $GITHUB_ENV
+            echo "VALUES=_k/${APP_NAME}/values-dev.yaml" >> $GITHUB_ENV
             echo "CONF_ENV=dev" >> $GITHUB_ENV
             echo "NAMESPACE=${DEV_NS}" >> $GITHUB_ENV
           elif [[ "$GITHUB_REF_NAME"  == *"staging"* ]] || [[ "$GITHUB_REF_NAME"  == *"nextstaging"* ]]; then
-            echo "VALUES=_k/${HELM_NAME}/values-stage.yaml" >> $GITHUB_ENV
+            echo "VALUES=_k/${APP_NAME}/values-stage.yaml" >> $GITHUB_ENV
             echo "CONF_ENV=stage" >> $GITHUB_ENV
             echo "NAMESPACE=${STG_NS}" >> $GITHUB_ENV
           elif [[ "$GITHUB_REF_NAME"  == *"next"* ]]; then
-            echo "VALUES=_k/${HELM_NAME}/values-next.yaml" >> $GITHUB_ENV
+            echo "VALUES=_k/${APP_NAME}/values-next.yaml" >> $GITHUB_ENV
             echo "CONF_ENV=next" >> $GITHUB_ENV
             echo "NAMESPACE=${PROD_NS}" >> $GITHUB_ENV
           fi
@@ -192,7 +192,7 @@ jobs:
           sed -i "s/^appVersion:.*$/appVersion: \"$(git describe)\"/" _k/$APP_NAME/Chart.yaml
 
           if [[ $SIMPLE_DEPLOY == true ]]; then
-            helm upgrade $APP_NAME _k/$APP_NAME --install --namespace $NAMESPACE --set app.image.tag=sha-$GITHUB_SHA -f $VALUES --wait --timeout $HELM_TIMEOUT
+            helm upgrade $HELM_NAME _k/$APP_NAME --install --namespace $NAMESPACE --set app.image.tag=sha-$GITHUB_SHA -f $VALUES --wait --timeout $HELM_TIMEOUT
           else
-            helm upgrade $APP_NAME _k/$APP_NAME --install --namespace $NAMESPACE --set app.config=$CONF_ENV,volume.path=$CONF_ENV.conf,app.image.tag=sha-$GITHUB_SHA -f $VALUES --wait --timeout $HELM_TIMEOUT --debug
+            helm upgrade $HELM_NAME _k/$APP_NAME --install --namespace $NAMESPACE --set app.config=$CONF_ENV,volume.path=$CONF_ENV.conf,app.image.tag=sha-$GITHUB_SHA -f $VALUES --wait --timeout $HELM_TIMEOUT --debug
           fi
