@@ -1,0 +1,91 @@
+name: Deploy Targeted
+on:
+  workflow_call:
+    inputs:
+      appname:
+        required: true
+        type: string
+      helm_name:
+        required: true
+        type: string
+      namespace:
+        required: true
+        type: string
+      helm_config:
+        required: true
+        type: string
+      use_ssm:
+        default: true
+        required: false
+        type: boolean
+      simple_deploy:
+        default: false
+        required: false
+        type: boolean
+    secrets:
+      AWS_ACCESS_KEY_ID:
+        required: true
+      AWS_SECRET_ACCESS_KEY:
+        required: true
+
+env:
+  APP_NAME: ${{ inputs.appname }}
+  HELM_NAME: ${{ inputs.helm_name }}
+  NAMESPACE: ${{ inputs.namespace }}
+  HELM_CONFIG: ${{ inputs.helm_config }}
+  SIMPLE_DEPLOY: ${{ inputs.simple_deploy }}
+  USE_SSM: ${{ inputs.use_ssm }}
+
+jobs:
+  Deploy:
+    runs-on: ubuntu-latest
+    # environment: ${{needs.Build.outputs.appenv}}
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Prepare deployment
+        env:
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+
+        run: |
+          echo "VALUES=_k/${APP_NAME}/values-${HELM_CONFIG}.yaml" >> $GITHUB_ENV
+          echo "CONF_ENV=${HELM_CONFIG}" >> $GITHUB_ENV
+          echo "NAMESPACE=${NAMESPACE}" >> $GITHUB_ENV
+
+      - uses: azure/setup-kubectl@v1
+        with:
+          version: "v1.22.4"
+
+      - uses: actions/setup-node@v2
+      - uses: azure/setup-helm@v1
+        with:
+          version: "v3.6.0" # default is latest stable
+
+      - name: AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Deploying Namespace
+        run: |
+          echo $NAMESPACE
+          echo $VALUES
+
+      - name: Deploy
+        run: |
+          aws eks update-kubeconfig --name fsf-prod
+          if [[ $USE_SSM == true ]]; then
+            helm plugin remove ssm || true
+            helm plugin add https://github.com/seripap/helm-ssm || true
+            helm ssm -f $VALUES
+          fi
+
+          sed -i "s/^appVersion:.*$/appVersion: \"$(git describe)\"/" _k/$APP_NAME/Chart.yaml
+
+          if [[ $SIMPLE_DEPLOY == true ]]; then
+            helm upgrade $HELM_NAME _k/$APP_NAME --install --namespace $NAMESPACE --set app.image.tag=sha-$GITHUB_SHA-$NAMESPACE -f $VALUES --wait --timeout 300s --debug
+          else
+            helm upgrade $HELM_NAME _k/$APP_NAME --install --namespace $NAMESPACE --set app.config=$CONF_ENV,volume.path=$CONF_ENV.conf,app.image.tag=sha-$GITHUB_SHA-$NAMESPACE -f $VALUES --wait --timeout 300s --debug
+          fi
