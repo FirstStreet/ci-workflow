@@ -9,6 +9,26 @@ on:
         default: "Dockerfile"
         required: false
         type: string
+      needs_subtree:
+        default: false
+        required: false
+        type: boolean
+      subtree_repo:
+        default: ""
+        required: false
+        type: string
+      subtree_token:
+        default: ""
+        required: false
+        type: string
+      subtree_path:
+        default: ""
+        required: false
+        type: string
+      subtree_ref:
+        default: main
+        required: false
+        type: string
     secrets:
       AWS_ACCESS_KEY_ID:
         required: true
@@ -33,6 +53,15 @@ jobs:
     steps:
       - name: checkout
         uses: actions/checkout@v2
+
+      - name: checkout subtree
+        uses: actions/checkout@v3
+        if: ${{ inputs.needs_subtree }}
+        with:
+          repository: ${{ inputs.subtree_repo }}
+          token: ${{ inputs.subtree_token }}
+          path: ${{ inputs.subtree_path }}
+          ref: ${{ inputs.subtree_ref }}
 
       - name: Setup buildx
         uses: docker/setup-buildx-action@v1
