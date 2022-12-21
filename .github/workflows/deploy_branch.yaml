@@ -56,7 +56,7 @@ jobs:
     runs-on: ubuntu-latest
     # environment: ${{needs.Build.outputs.appenv}}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Prepare deployment
         env:
@@ -84,12 +84,12 @@ jobs:
             echo "NAMESPACE=${PROD_NS}" >> $GITHUB_ENV
           fi
 
-      - uses: azure/setup-kubectl@v1
+      - uses: azure/setup-kubectl@v3
         with:
           version: "v1.22.4"
 
-      - uses: actions/setup-node@v2
-      - uses: azure/setup-helm@v1
+      - uses: actions/setup-node@v3
+      - uses: azure/setup-helm@v3
         with:
           version: "v3.6.0" # default is latest stable
 
