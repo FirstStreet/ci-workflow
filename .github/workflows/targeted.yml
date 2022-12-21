@@ -45,7 +45,7 @@ env:
 
 jobs:
   Build:
-    uses: ./build_targeted.yaml
+    uses: ./.github/workflows/build_targeted.yaml
     with: 
       namespace: ${{ inputs.namespace }}
       dockerfile: ${{ inputs.dockerfile }}
@@ -55,7 +55,7 @@ jobs:
   
   Deploy:
     needs: [Build]
-    uses: ./deploy_targeted.yaml
+    uses: ./.github/workflows/deploy_targeted.yaml
     with:
       appname: ${{ inputs.appname }}
       helm_name: ${{ inputs.helm_name }}

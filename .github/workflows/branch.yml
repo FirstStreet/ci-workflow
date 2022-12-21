@@ -59,7 +59,7 @@ env:
 
 jobs:
   Build:
-    uses: ./build_branch.yaml
+    uses: ./.github/workflows/build_branch.yaml
     with:
       dockerfile: ${{ inputs.dockerfile }}
     secrets:
@@ -67,7 +67,7 @@ jobs:
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
   Deploy:
-    uses: ./deploy_branch.yaml
+    uses: ./.github/workflows/deploy_branch.yaml
     needs: [Build]
     with:
       appname: ${{ inputs.appname }}
