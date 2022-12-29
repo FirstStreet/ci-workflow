@@ -6,16 +6,35 @@ on:
         default: "Dockerfile"
         required: false
         type: string
+      needs_subtree:
+        default: false
+        required: false
+        type: boolean
+      subtree_repo:
+        default: ""
+        required: false
+        type: string
+      subtree_path:
+        default: ""
+        required: false
+        type: string
+      subtree_ref:
+        default: main
+        required: false
+        type: string
+      
     secrets:
       AWS_ACCESS_KEY_ID:
         required: true
       AWS_SECRET_ACCESS_KEY:
         required: true
-
+      SUBTREE_TOKEN:
+        required: false
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
   DOCKERFILE: ${{ inputs.dockerfile }}
+
 
 jobs:
   Build:
@@ -28,7 +47,16 @@ jobs:
 
     steps:
       - name: checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
+
+      - name: checkout subtree
+        uses: actions/checkout@v3
+        if: ${{ inputs.needs_subtree }}
+        with:
+          repository: ${{ inputs.subtree_repo }}
+          token: ${{ secrets.SUBTREE_TOKEN }}
+          path: ${{ inputs.subtree_path }}
+          ref: ${{ inputs.subtree_ref }}
 
       - name: Setup buildx
         uses: docker/setup-buildx-action@v1
@@ -37,7 +65,7 @@ jobs:
           install: true
 
       - name: Cache Docker layers
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: /tmp/.buildx-cache
           key: ${{ runner.os }}-buildx-${{ github.sha }}-v2
@@ -45,7 +73,7 @@ jobs:
             ${{ runner.os }}-buildx-${{ github.sha }}-v2
 
       - name: Log in to the Container registry
-        uses: docker/login-action@v1
+        uses: docker/login-action@v2
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
@@ -53,7 +81,7 @@ jobs:
 
       - name: Extract metadata (tags, labels) for Docker
         id: meta
-        uses: docker/metadata-action@v3
+        uses: docker/metadata-action@v4
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
@@ -62,7 +90,7 @@ jobs:
             type=sha,format=long
 
       - name: Build and push Docker image
-        uses: docker/build-push-action@v2
+        uses: docker/build-push-action@v3
         with:
           context: .
           push: ${{ github.event_name != 'pull_request' }}
