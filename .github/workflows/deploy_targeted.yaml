@@ -22,6 +22,10 @@ on:
         default: false
         required: false
         type: boolean
+      eks_cluster:
+        default: fsf-prod
+        required: false
+        type: string
     secrets:
       AWS_ACCESS_KEY_ID:
         required: true
@@ -75,7 +79,7 @@ jobs:
 
       - name: Deploy
         run: |
-          aws eks update-kubeconfig --name fsf-prod
+          aws eks update-kubeconfig --name ${{ inputs.eks_cluster }}
           if [[ $USE_SSM == true ]]; then
             helm plugin remove ssm || true
             helm plugin add https://github.com/seripap/helm-ssm || true

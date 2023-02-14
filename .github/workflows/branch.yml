@@ -37,11 +37,16 @@ on:
         default: false
         required: false
         type: boolean
+      eks_cluster:
+        default: fsf-prod
+        required: false
+        type: string
     secrets:
       AWS_ACCESS_KEY_ID:
         required: true
       AWS_SECRET_ACCESS_KEY:
         required: true
+
 
 env:
   REGISTRY: ghcr.io
@@ -79,6 +84,7 @@ jobs:
       use_ssm: ${{ inputs.use_ssm }}
       simple_deploy: ${{ inputs.simple_deploy }}
       release: ${{ inputs.release }}
+      eks_cluster: ${{ inputs.eks_cluster }}
     secrets:
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
