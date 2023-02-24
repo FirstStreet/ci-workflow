@@ -26,6 +26,10 @@ on:
         default: "Dockerfile"
         required: false
         type: string
+      cluster_name:
+        default: "fsf-prod"
+        required: false
+        type: string
     secrets:
       AWS_ACCESS_KEY_ID:
         required: true
@@ -42,17 +46,18 @@ env:
   SIMPLE_DEPLOY: ${{ inputs.simple_deploy }}
   USE_SSM: ${{ inputs.use_ssm }}
   DOCKERFILE: ${{ inputs.dockerfile }}
+  CLUSTER_NAME: ${{ inputs.cluster_name }}
 
 jobs:
   Build:
     uses: ./.github/workflows/build_targeted.yaml
-    with: 
+    with:
       namespace: ${{ inputs.namespace }}
       dockerfile: ${{ inputs.dockerfile }}
     secrets:
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-  
+
   Deploy:
     needs: [Build]
     uses: ./.github/workflows/deploy_targeted.yaml
@@ -63,8 +68,8 @@ jobs:
       helm_config: ${{ inputs.helm_config }}
       use_ssm: ${{ inputs.use_ssm }}
       simple_deploy: ${{ inputs.simple_deploy }}
+      cluster_name: ${{ inputs.cluster_name }}
 
     secrets:
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-    
