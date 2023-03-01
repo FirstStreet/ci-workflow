@@ -17,10 +17,6 @@ on:
         default: ""
         required: false
         type: string
-      subtree_token:
-        default: ""
-        required: false
-        type: string
       subtree_path:
         default: ""
         required: false
@@ -59,7 +55,7 @@ jobs:
         if: ${{ inputs.needs_subtree }}
         with:
           repository: ${{ inputs.subtree_repo }}
-          token: ${{ inputs.subtree_token }}
+          token: ${{ secrets.SUBTREE_TOKEN }}
           path: ${{ inputs.subtree_path }}
           ref: ${{ inputs.subtree_ref }}
 
