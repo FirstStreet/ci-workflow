@@ -33,6 +33,10 @@ on:
         default: false
         required: false
         type: boolean
+      eks_cluster:
+        default: fsf-prod
+        required: false
+        type: string
     secrets:
       AWS_ACCESS_KEY_ID:
         required: true
@@ -78,6 +82,10 @@ jobs:
             echo "VALUES=_k/${APP_NAME}/values-stage.yaml" >> $GITHUB_ENV
             echo "CONF_ENV=stage" >> $GITHUB_ENV
             echo "NAMESPACE=${STG_NS}" >> $GITHUB_ENV
+          elif [[ "$GITHUB_REF_NAME"  == *"k8s_migration"* ]]; then
+            echo "VALUES=_k/${APP_NAME}/values-edit.yaml" >> $GITHUB_ENV
+            echo "CONF_ENV=edit" >> $GITHUB_ENV
+            echo "NAMESPACE=${STG_NS}" >> $GITHUB_ENV
           elif [[ "$GITHUB_REF_NAME"  == *"next"* ]]; then
             echo "VALUES=_k/${APP_NAME}/values-next.yaml" >> $GITHUB_ENV
             echo "CONF_ENV=next" >> $GITHUB_ENV
@@ -86,7 +94,7 @@ jobs:
 
       - uses: azure/setup-kubectl@v3
         with:
-          version: "v1.22.4"
+          version: "v1.25.2"
 
       - uses: actions/setup-node@v3
       - uses: azure/setup-helm@v3
@@ -107,7 +115,7 @@ jobs:
 
       - name: Deploy
         run: |
-          aws eks update-kubeconfig --name fsf-prod
+          aws eks update-kubeconfig --name ${{ inputs.eks_cluster }}
           if [[ $USE_SSM == true ]]; then
             helm plugin remove ssm || true
             helm plugin add https://github.com/seripap/helm-ssm || true
