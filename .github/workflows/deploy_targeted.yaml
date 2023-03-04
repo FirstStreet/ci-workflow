@@ -23,7 +23,7 @@ on:
         required: false
         type: boolean
       eks_cluster:
-        default: fsf-prod
+        default: potato-pie
         required: false
         type: string
     secrets:
