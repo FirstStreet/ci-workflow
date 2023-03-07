@@ -25,6 +25,10 @@ on:
         default: main
         required: false
         type: string
+      image_tag:
+        default: "build"
+        required: false
+        type: string
     secrets:
       AWS_ACCESS_KEY_ID:
         required: true
@@ -36,6 +40,7 @@ on:
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
+  IMAGE_TAG: ${{ inputs.image_tag }}
   NAMESPACE: ${{ inputs.namespace }}
   DOCKERFILE: ${{ inputs.dockerfile }}
 
@@ -88,6 +93,7 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
+            type=raw,value=${{ env.IMAGE_TAG }}
             type=ref,event=branch
             type=ref,event=pr
             type=sha,format=long,suffix=-${{ env.NAMESPACE }}

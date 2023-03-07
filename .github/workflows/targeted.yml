@@ -30,6 +30,12 @@ on:
         default: potato-pie
         required: false
         type: string
+      image_tag:
+        # A tag name must be a valid ASCII chars sequence and may contain lowercase letters, digits, underscores, periods and dashes. A tag name may not start with a period or a dash and may contain a maximum of 128 characters.
+        # Here we are using neutral "build" label in the absence of provided label.
+        default: "build"
+        required: false
+        type: string
     secrets:
       AWS_ACCESS_KEY_ID:
         required: true
@@ -53,6 +59,7 @@ jobs:
     with: 
       namespace: ${{ inputs.namespace }}
       dockerfile: ${{ inputs.dockerfile }}
+      image_tag: ${{ inputs.image_tag }}
     secrets:
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -67,7 +74,7 @@ jobs:
       helm_config: ${{ inputs.helm_config }}
       use_ssm: ${{ inputs.use_ssm }}
       simple_deploy: ${{ inputs.simple_deploy }}
-      eks_cluster: ${{ inputs.eks_cluster }}
+      eks_cluster: ${{ eks_cluster }}
 
     secrets:
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
