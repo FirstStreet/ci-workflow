@@ -74,7 +74,7 @@ jobs:
       helm_config: ${{ inputs.helm_config }}
       use_ssm: ${{ inputs.use_ssm }}
       simple_deploy: ${{ inputs.simple_deploy }}
-      eks_cluster: ${{ eks_cluster }}
+      eks_cluster: ${{ inputs.eks_cluster }}
 
     secrets:
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
