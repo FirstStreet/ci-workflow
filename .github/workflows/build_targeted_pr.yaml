@@ -1,0 +1,124 @@
+name: Build & Push Targeted
+on:
+  workflow_call:
+    inputs:
+      namespace:
+        required: true
+        type: string
+      dockerfile:
+        default: "Dockerfile"
+        required: false
+        type: string
+      needs_subtree:
+        default: false
+        required: false
+        type: boolean
+      subtree_repo:
+        default: ""
+        required: false
+        type: string
+      subtree_path:
+        default: ""
+        required: false
+        type: string
+      subtree_ref:
+        default: main
+        required: false
+        type: string
+      image_tag:
+        default: "build"
+        required: false
+        type: string
+    secrets:
+      AWS_ACCESS_KEY_ID:
+        required: true
+      AWS_SECRET_ACCESS_KEY:
+        required: true
+      SUBTREE_TOKEN:
+        required: false
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+  IMAGE_TAG: ${{ inputs.image_tag }}
+  NAMESPACE: ${{ inputs.namespace }}
+  DOCKERFILE: ${{ inputs.dockerfile }}
+
+jobs:
+  Build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    # outputs:
+    #   appenv: ${{ steps.setappenv.outputs.env }}
+
+    steps:
+      - name: checkout
+        uses: actions/checkout@v3
+
+      - name: checkout subtree
+        uses: actions/checkout@v3
+        if: ${{ inputs.needs_subtree }}
+        with:
+          repository: ${{ inputs.subtree_repo }}
+          token: ${{ secrets.SUBTREE_TOKEN }}
+          path: ${{ inputs.subtree_path }}
+          ref: ${{ inputs.subtree_ref }}
+
+      - name: Setup buildx
+        uses: docker/setup-buildx-action@v2
+        id: buildx
+        with:
+          install: true
+
+      - name: Cache Docker layers
+        uses: actions/cache@v3
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-${{ github.sha }}-${{ env.NAMESPACE }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-${{ github.sha }}-${{ env.NAMESPACE }}
+
+      - name: Log in to the Container registry
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@v4
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=raw,value=${{ env.IMAGE_TAG }}
+            type=ref,event=branch
+            type=ref,event=pr
+            type=sha,format=long,suffix=-${{ env.NAMESPACE }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v3
+        with:
+          context: .
+          push: true
+          file: ${{ env.DOCKERFILE }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache-new
+
+      - name: Move cache
+        run: |
+          rm -rf /tmp/.buildx-cache
+          mv /tmp/.buildx-cache-new /tmp/.buildx-cache
+
+      # This only works for pub repos
+      # - id: setappenv
+      #   run: |
+      #     if [[ "$GITHUB_REF_NAME" == *"develop"* ]]; then
+      #       echo "::set-output name=DEPLOY_ENV::development"
+      #     elif [[ "$GITHUB_REF_NAME" == *"master"* ]]; then
+      #       echo "::set-output name=DEPLOY_ENV::production"
+      #     fi
