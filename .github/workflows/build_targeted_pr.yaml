@@ -29,6 +29,18 @@ on:
         default: "build"
         required: false
         type: string
+      var_replace_find:
+        default: ""
+        required: false
+        type: string
+      var_replace_with:
+        default: ""
+        required: false
+        type: string
+      var_replace_include:
+        default: ""
+        required: false
+        type: string
     secrets:
       AWS_ACCESS_KEY_ID:
         required: true
@@ -56,6 +68,15 @@ jobs:
     steps:
       - name: checkout
         uses: actions/checkout@v3
+
+      - name: Find and Replace
+        if: ${{ inputs.var_replace_find }}
+        uses: jacobtomlinson/gha-find-replace@v3
+        with:
+          find: ${{ inputs.var_replace_find }}
+          include: ${{ inputs.var_replace_include }}
+          replace: ${{ inputs.var_replace_with }}
+          regex: false
 
       - name: checkout subtree
         uses: actions/checkout@v3
