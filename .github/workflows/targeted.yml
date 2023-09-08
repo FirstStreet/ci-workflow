@@ -36,14 +36,18 @@ on:
         default: "build"
         required: false
         type: string
+      aws_role_to_assume:
+        required: false
+        type: string
+      aws_key_id:
+        required: false
+        type: string
     secrets:
       AWS_ACCESS_KEY_ID:
         required: true
       AWS_SECRET_ACCESS_KEY:
         required: true
       AWS_SESSION_TOKEN:
-        required: false
-      AWS_ROLE_TO_ASSUME:
         required: false
 
 env:
@@ -85,6 +89,7 @@ jobs:
       use_ssm: ${{ inputs.use_ssm }}
       simple_deploy: ${{ inputs.simple_deploy }}
       eks_cluster: ${{ inputs.eks_cluster }}
+      aws_role_to_assume: ${{ inputs.aws_role_to_assume }}
 
     secrets:
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
