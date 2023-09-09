@@ -42,9 +42,7 @@ on:
       aws_role_session_name_prefix:
         required: false
         type: string
-    secrets:
-       SUBTREE_TOKEN:
-        required: false
+
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
@@ -66,8 +64,6 @@ jobs:
       namespace: ${{ inputs.namespace }}
       dockerfile: ${{ inputs.dockerfile }}
       image_tag: ${{ inputs.image_tag }}
-    secrets:
-      SUBTREE_TOKEN: ${{ secrets.SUBTREE_TOKEN }}
 
   Deploy:
     permissions:

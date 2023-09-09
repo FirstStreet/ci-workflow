@@ -75,7 +75,7 @@ jobs:
         with:
           aws-region: us-east-1
           role-to-assume: ${{ inputs.aws_role_to_assume }}
-          role-session-name:  ${{ inputs.aws_role_session_name_prefix }}GithubActions-${{ inputs.appname }}-${{ github.sha }}-${{ inputs.helm_name }}
+          role-session-name:  ${{ inputs.aws_role_session_name_prefix }}GithubActions-${{ github.repository }}-${{ inputs.helm_name }}
 
       - name: Deploying Namespace
         run: |
