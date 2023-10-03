@@ -32,6 +32,10 @@ on:
       aws_role_session_name_prefix:
         required: false
         type: string
+      use_1pass:
+        type: boolean
+        required: false
+        default: false
 
 env:
   APP_NAME: ${{ inputs.appname }}
@@ -40,6 +44,7 @@ env:
   HELM_CONFIG: ${{ inputs.helm_config }}
   SIMPLE_DEPLOY: ${{ inputs.simple_deploy }}
   USE_SSM: ${{ inputs.use_ssm }}
+  USE_1PASS: ${{ inputs.use_1pass }}
 
 jobs:
   Deploy:
@@ -85,10 +90,16 @@ jobs:
       - name: Deploy
         run: |
           aws eks update-kubeconfig --name ${{ inputs.eks_cluster }}
+
           if [[ $USE_SSM == true ]]; then
             helm plugin remove ssm || true
             helm plugin add https://github.com/seripap/helm-ssm || true
             helm ssm -f $VALUES
+          fi
+
+          if [[ $USE_1PASS == true ]]; then
+            helm install secrets-injector 1password/secrets-injector --namespace $NAMESPACE
+            kubectl label namespace $NAMESPACE secrets-injection=enabled
           fi
 
           sed -i "s/^appVersion:.*$/appVersion: \"$(git describe)\"/" _k/$APP_NAME/Chart.yaml

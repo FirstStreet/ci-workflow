@@ -42,6 +42,10 @@ on:
       aws_role_session_name_prefix:
         required: false
         type: string
+      use_1pass:
+        type: boolean
+        required: false
+        default: false
 
 env:
   REGISTRY: ghcr.io
@@ -81,3 +85,4 @@ jobs:
       eks_cluster: ${{ inputs.eks_cluster }}
       aws_role_to_assume: ${{ inputs.aws_role_to_assume }}
       aws_role_session_name_prefix: ${{ inputs.aws_role_session_name_prefix }}
+      use_1pass: ${{ inputs.use_1pass }}
