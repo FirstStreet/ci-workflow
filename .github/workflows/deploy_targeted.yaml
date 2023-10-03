@@ -98,6 +98,7 @@ jobs:
           fi
 
           if [[ $USE_1PASS == true ]]; then
+            helm repo update
             helm install secrets-injector 1password/secrets-injector --namespace $NAMESPACE
             kubectl label namespace $NAMESPACE secrets-injection=enabled
           fi
