@@ -117,8 +117,6 @@ jobs:
           if [[ $SIMPLE_DEPLOY == true ]]; then
             helm upgrade $HELM_NAME _k/$APP_NAME --install --namespace $NAMESPACE --set app.image.tag=sha-$GITHUB_SHA-$NAMESPACE -f $VALUES --wait --timeout 300s --debug
           else
-            echo "OP_SERVICE_ACCOUNT_TOKEN=${{secrets.OP_SERVICE_ACCOUNT_TOKEN}}" >> $GITHUB_ENV
-            op inject -i $CONF_ENV.conf -o $CONF_ENV.conf.op
             helm upgrade $HELM_NAME _k/$APP_NAME --install --namespace $NAMESPACE --set app.image.tag=sha-$GITHUB_SHA-$NAMESPACE,app.config=$CONF_ENV,volume.path=$CONF_ENV.conf.op -f $VALUES --wait --timeout 300s --debug
-            rm $CONF_ENV.conf.op
+
           fi
