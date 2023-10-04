@@ -96,6 +96,17 @@ jobs:
         if:  env.USE_1PASS == 'true'
         uses: 1password/install-cli-action@v1
 
+      - name: Prepare 1Password CLI
+        if:  env.USE_1PASS == 'true' && env.SIMPLE_DEPLOY == 'false'
+        run: |
+          helm repo add 1password https://1password.github.io/connect-helm-charts
+          helm upgrade --install secrets-injector 1password/secrets-injector --namespace $NAMESPACE
+          kubectl label namespace $NAMESPACE secrets-injection=enabled
+
+          echo "OP_SERVICE_ACCOUNT_TOKEN=${{secrets.OP_SERVICE_ACCOUNT_TOKEN}}" >> $GITHUB_ENV
+          op inject -i _k/${APP_NAME}/appconfig/${CONF_ENV}.conf -o _k/${APP_NAME}/appconfig/${CONF_ENV}.conf.op
+          mv _k/${APP_NAME}/appconfig/${CONF_ENV}.conf.op _k/${APP_NAME}/appconfig/${CONF_ENV}.conf
+
       - name: Deploy
         run: |
           aws eks update-kubeconfig --name ${{ inputs.eks_cluster }}
@@ -106,20 +117,15 @@ jobs:
             helm ssm -f $VALUES
           fi
 
-          if [[ $USE_1PASS == true ]]; then
-            helm repo add 1password https://1password.github.io/connect-helm-charts
-            helm upgrade --install secrets-injector 1password/secrets-injector --namespace $NAMESPACE
-            kubectl label namespace $NAMESPACE secrets-injection=enabled
-          fi
-
           sed -i "s/^appVersion:.*$/appVersion: \"$(git describe)\"/" _k/$APP_NAME/Chart.yaml
 
           if [[ $SIMPLE_DEPLOY == true ]]; then
             helm upgrade $HELM_NAME _k/$APP_NAME --install --namespace $NAMESPACE --set app.image.tag=sha-$GITHUB_SHA-$NAMESPACE -f $VALUES --wait --timeout 300s --debug
           else
-            ls
-            echo "OP_SERVICE_ACCOUNT_TOKEN=${{secrets.OP_SERVICE_ACCOUNT_TOKEN}}" >> $GITHUB_ENV
-            op inject -i $CONF_ENV.conf -o $CONF_ENV.conf.op
-            helm upgrade $HELM_NAME _k/$APP_NAME --install --namespace $NAMESPACE --set app.image.tag=sha-$GITHUB_SHA-$NAMESPACE,app.config=$CONF_ENV,volume.path=$CONF_ENV.conf.op -f $VALUES --wait --timeout 300s --debug
-            rm $CONF_ENV.conf.op
+            helm upgrade $HELM_NAME _k/$APP_NAME --install --namespace $NAMESPACE --set app.image.tag=sha-$GITHUB_SHA-$NAMESPACE,app.config=$CONF_ENV,volume.path=$CONF_ENV.conf -f $VALUES --wait --timeout 300s --debug
           fi
+
+      - name: Cleanup
+        if: always()
+        run: |
+          rm _k/${APP_NAME}/appconfig/${CONF_ENV}.conf
