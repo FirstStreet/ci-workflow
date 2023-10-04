@@ -33,6 +33,7 @@ on:
         required: false
         type: string
       use_1pass:
+        description: "When true injects 1password secrets into the config file and deployment values file. Only works for config files when simple_deploy=false. Example project: https://github.com/FirstStreet/onpass-test"
         type: boolean
         required: false
         default: false
@@ -87,6 +88,10 @@ jobs:
           echo $NAMESPACE
           echo $VALUES
 
+      - name: Install 1Password CLI
+        if:  $USE_1PASS == true
+        uses: 1password/install-cli-action@v1
+
       - name: Deploy
         run: |
           aws eks update-kubeconfig --name ${{ inputs.eks_cluster }}
@@ -108,5 +113,7 @@ jobs:
           if [[ $SIMPLE_DEPLOY == true ]]; then
             helm upgrade $HELM_NAME _k/$APP_NAME --install --namespace $NAMESPACE --set app.image.tag=sha-$GITHUB_SHA-$NAMESPACE -f $VALUES --wait --timeout 300s --debug
           else
-            helm upgrade $HELM_NAME _k/$APP_NAME --install --namespace $NAMESPACE --set app.image.tag=sha-$GITHUB_SHA-$NAMESPACE,app.config=$CONF_ENV,volume.path=$CONF_ENV.conf -f $VALUES --wait --timeout 300s --debug
+            op inject -i $CONF_ENV.conf -o $CONF_ENV.conf.op
+            helm upgrade $HELM_NAME _k/$APP_NAME --install --namespace $NAMESPACE --set app.image.tag=sha-$GITHUB_SHA-$NAMESPACE,app.config=$CONF_ENV,volume.path=$CONF_ENV.conf.op -f $VALUES --wait --timeout 300s --debug
+            rm $CONF_ENV.conf.op
           fi
