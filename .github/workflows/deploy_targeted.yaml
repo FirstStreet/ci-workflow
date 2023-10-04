@@ -99,7 +99,7 @@ jobs:
 
           if [[ $USE_1PASS == true ]]; then
             helm repo add 1password https://1password.github.io/connect-helm-charts
-            helm install secrets-injector 1password/secrets-injector --namespace $NAMESPACE
+            helm upgrade --install secrets-injector 1password/secrets-injector --namespace $NAMESPACE
             kubectl label namespace $NAMESPACE secrets-injection=enabled
           fi
 
