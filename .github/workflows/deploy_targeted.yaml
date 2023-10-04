@@ -92,24 +92,32 @@ jobs:
           echo $NAMESPACE
           echo $VALUES
 
-      - name: Install 1Password CLI
-        # installs OP CLI so we can run 'op inject' to replace secrets in app config files
-        # https://developer.1password.com/docs/cli/reference/commands/inject
-        if:  env.USE_1PASS == 'true'
-        uses: 1password/install-cli-action@v1
-
-      - name: Prepare 1Password
-        if:  env.USE_1PASS == 'true' && env.SIMPLE_DEPLOY == 'false'
+      - name: Configure kubernetes cluster
         run: |
-          # installs OP secret-injector that replaces secrets in "values-*.yaml" files
-          # needs OP connect server
-          # https://developer.1password.com/docs/connect/k8s-injector/
+          aws eks update-kubeconfig --name ${{ inputs.eks_cluster }}
+
+      - name: Configure 1Password secret-injector
+        # installs OP secret-injector that replaces secrets in "values-*.yaml" files
+        # needs OP connect server
+        # https://developer.1password.com/docs/connect/k8s-injector/
+        if:  env.USE_1PASS == 'true'
+        run: |
+
           # TODO: do we want to upgrade every time or we want to manually manage it? It's per namespace
           helm repo add 1password https://1password.github.io/connect-helm-charts
           helm upgrade --install secrets-injector 1password/secrets-injector --namespace $NAMESPACE
 
-          # needed for OP secret-injector
           kubectl label namespace $NAMESPACE secrets-injection=enabled
+
+      - name: Install 1Password CLI
+        # installs OP CLI so we can run 'op inject' to replace secrets in app config files
+        # https://developer.1password.com/docs/cli/reference/commands/inject
+        if:  env.USE_1PASS == 'true' && env.SIMPLE_DEPLOY == 'false'
+        uses: 1password/install-cli-action@v1
+
+      - name: 1Password CLI
+        if:  env.USE_1PASS == 'true' && env.SIMPLE_DEPLOY == 'false'
+        run: |
 
           # authenticate and replace secrets in app config file
           # can authenticate either with service account token or with connect server credentials
@@ -119,7 +127,6 @@ jobs:
 
       - name: Deploy
         run: |
-          aws eks update-kubeconfig --name ${{ inputs.eks_cluster }}
 
           if [[ $USE_SSM == true ]]; then
             helm plugin remove ssm || true
@@ -135,7 +142,7 @@ jobs:
             helm upgrade $HELM_NAME _k/$APP_NAME --install --namespace $NAMESPACE --set app.image.tag=sha-$GITHUB_SHA-$NAMESPACE,app.config=$CONF_ENV,volume.path=$CONF_ENV.conf -f $VALUES --wait --timeout 300s --debug
           fi
 
-      - name: Cleanup
+      - name: Cleanup conf with secrets
         if: always()
         run: |
           rm _k/${APP_NAME}/appconfig/${CONF_ENV}.conf
