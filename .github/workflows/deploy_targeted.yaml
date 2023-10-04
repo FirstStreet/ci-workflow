@@ -37,6 +37,10 @@ on:
         type: boolean
         required: false
         default: false
+    secrets:
+      OP_SERVICE_ACCOUNT_TOKEN:
+        required: false
+        description: "1Password service account token"
 
 env:
   APP_NAME: ${{ inputs.appname }}
@@ -89,7 +93,7 @@ jobs:
           echo $VALUES
 
       - name: Install 1Password CLI
-        if:  $USE_1PASS == true
+        if:  ${{ USE_1PASS == true }}
         uses: 1password/install-cli-action@v1
 
       - name: Deploy
@@ -113,6 +117,7 @@ jobs:
           if [[ $SIMPLE_DEPLOY == true ]]; then
             helm upgrade $HELM_NAME _k/$APP_NAME --install --namespace $NAMESPACE --set app.image.tag=sha-$GITHUB_SHA-$NAMESPACE -f $VALUES --wait --timeout 300s --debug
           else
+            echo "OP_SERVICE_ACCOUNT_TOKEN=${{secrets.OP_SERVICE_ACCOUNT_TOKEN}}" >> $GITHUB_ENV
             op inject -i $CONF_ENV.conf -o $CONF_ENV.conf.op
             helm upgrade $HELM_NAME _k/$APP_NAME --install --namespace $NAMESPACE --set app.image.tag=sha-$GITHUB_SHA-$NAMESPACE,app.config=$CONF_ENV,volume.path=$CONF_ENV.conf.op -f $VALUES --wait --timeout 300s --debug
             rm $CONF_ENV.conf.op

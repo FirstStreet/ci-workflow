@@ -46,6 +46,10 @@ on:
         type: boolean
         required: false
         default: false
+    secrets:
+      OP_SERVICE_ACCOUNT_TOKEN:
+        required: false
+        description: "1Password service account token"
 
 env:
   REGISTRY: ghcr.io
@@ -86,3 +90,5 @@ jobs:
       aws_role_to_assume: ${{ inputs.aws_role_to_assume }}
       aws_role_session_name_prefix: ${{ inputs.aws_role_session_name_prefix }}
       use_1pass: ${{ inputs.use_1pass }}
+    secrets:
+      OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
