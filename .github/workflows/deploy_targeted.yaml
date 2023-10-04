@@ -93,7 +93,7 @@ jobs:
           echo $VALUES
 
       - name: Install 1Password CLI
-        if:  ${{ USE_1PASS == true }}
+        if:  ${{ $USE_1PASS == true }}
         uses: 1password/install-cli-action@v1
 
       - name: Deploy
