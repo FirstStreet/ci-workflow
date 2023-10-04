@@ -50,6 +50,7 @@ env:
   SIMPLE_DEPLOY: ${{ inputs.simple_deploy }}
   USE_SSM: ${{ inputs.use_ssm }}
   USE_1PASS: ${{ inputs.use_1pass }}
+  OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
 
 jobs:
   Deploy:
@@ -98,7 +99,7 @@ jobs:
 
       - name: Configure 1Password secret-injector
         # installs OP secret-injector that replaces secrets in "values-*.yaml" files
-        # needs OP connect server
+        # needs OP connect server in the cluster and op connect token secret configured in the namespace - this can also be either manual or we can script so it's copied to other namespaces from a known secret in a known namespace
         # https://developer.1password.com/docs/connect/k8s-injector/
         if:  env.USE_1PASS == 'true'
         run: |
@@ -121,7 +122,6 @@ jobs:
 
           # authenticate and replace secrets in app config file
           # can authenticate either with service account token or with connect server credentials
-          echo "OP_SERVICE_ACCOUNT_TOKEN=${{secrets.OP_SERVICE_ACCOUNT_TOKEN}}" >> $GITHUB_ENV
           op inject -i _k/${APP_NAME}/appconfig/${CONF_ENV}.conf -o _k/${APP_NAME}/appconfig/${CONF_ENV}.conf.op
           mv _k/${APP_NAME}/appconfig/${CONF_ENV}.conf.op _k/${APP_NAME}/appconfig/${CONF_ENV}.conf
 
