@@ -97,21 +97,28 @@ jobs:
         run: |
           aws eks update-kubeconfig --name ${{ inputs.eks_cluster }}
 
-      - name: Configure 1Password secret-injector
-        # installs OP secret-injector that replaces secrets in "values-*.yaml" files
-        # needs OP connect server in the cluster and op connect token secret configured in the namespace - this can also be either manual or we can script so it's copied to other namespaces from a known secret in a known namespace
-        # https://developer.1password.com/docs/connect/k8s-injector/
-        if:  env.USE_1PASS == 'true'
-        run: |
 
-          # TODO: do we want to upgrade every time or we want to manually manage it? It's per namespace
-          helm repo add 1password https://1password.github.io/connect-helm-charts
-          helm upgrade --install secrets-injector 1password/secrets-injector --namespace $NAMESPACE
+      # the below step was commented out for the following reasons:
+      # 1. secrets-injector needs to be installed once, into default namespace
+      # 2. each namespace that is going to use secrets injection will need to be configured manually (for now):
+      #    - label added: kubectl label namespace $NAMESPACE secrets-injection=enabled
+      #    - secret created: kubectl create secret generic op-connect-token --from-literal=op-connect-token=$OP_CONNECT_TOKEN --namespace $NAMESPACE
 
-          kubectl label namespace $NAMESPACE secrets-injection=enabled
+      # - name: Configure 1Password secret-injector
+      #   # installs OP secret-injector that replaces secrets in "values-*.yaml" files
+      #   # needs OP connect server in the cluster and op connect token secret configured in the namespace - this can also be either manual or we can script so it's copied to other namespaces from a known secret in a known namespace
+      #   # https://developer.1password.com/docs/connect/k8s-injector/
+      #   if:  env.USE_1PASS == 'true'
+      #   run: |
+
+      #     # TODO: do we want to upgrade every time or we want to manually manage it? It's per namespace
+      #     helm repo add 1password https://1password.github.io/connect-helm-charts
+      #     helm upgrade --install secrets-injector 1password/secrets-injector
+
+      #     kubectl label namespace $NAMESPACE secrets-injection=enabled
 
       - name: Install 1Password CLI
-        # installs OP CLI so we can run 'op inject' to replace secrets in app config files
+        # installs OP CLI so we can run 'op inject' to replace secrets in app config files (i.e. prod.conf)
         # https://developer.1password.com/docs/cli/reference/commands/inject
         if:  env.USE_1PASS == 'true' && env.SIMPLE_DEPLOY == 'false'
         uses: 1password/install-cli-action@v1
