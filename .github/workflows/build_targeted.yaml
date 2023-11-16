@@ -46,7 +46,7 @@ env:
 
 jobs:
   Build:
-    runs-on: ubuntu-latest
+    runs-on: aws
     permissions:
       contents: read
       packages: write
