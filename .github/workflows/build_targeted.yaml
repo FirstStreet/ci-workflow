@@ -29,6 +29,14 @@ on:
         default: "build"
         required: false
         type: string
+      op_env_file:
+          default: ""
+          required: false
+          type: string
+      op_env_file_out:
+          default: ".env"
+          required: false
+          type: string
     secrets:
       AWS_ACCESS_KEY_ID:
         required: true
@@ -97,6 +105,15 @@ jobs:
             type=ref,event=branch
             type=ref,event=pr
             type=sha,format=long,suffix=-${{ env.NAMESPACE }}
+
+      - name: Install 1Password CLI
+        if: ${{ inputs.op_env_file }}
+        uses: 1password/install-cli-action@v1
+
+      - name: 'Create env file'
+        if: ${{ inputs.op_env_file }}
+        run: |
+          op document get "${{ secrets.op_env_file }}" --out-file=${{ secrets.op_env_file_out }}
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v3
