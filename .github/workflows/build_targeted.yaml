@@ -112,6 +112,8 @@ jobs:
 
       - name: 'Create env file'
         if: ${{ inputs.op_env_file }}
+        env:
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
         run: |
           op document get "${{ secrets.op_env_file }}" --out-file=${{ secrets.op_env_file_out }}
 
