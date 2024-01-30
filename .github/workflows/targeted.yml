@@ -37,13 +37,13 @@ on:
         required: false
         type: string
       op_env_file:
-          default: ""
-          required: false
-          type: string
+        default: ""
+        required: false
+        type: string
       op_env_file_out:
-          default: ".env"
-          required: false
-          type: string
+        default: ".env"
+        required: false
+        type: string
     secrets:
       AWS_ACCESS_KEY_ID:
         required: true
@@ -60,6 +60,8 @@ env:
   SIMPLE_DEPLOY: ${{ inputs.simple_deploy }}
   USE_SSM: ${{ inputs.use_ssm }}
   DOCKERFILE: ${{ inputs.dockerfile }}
+  op_env_file: ${{ inputs.op_env_file }}
+  op_env_file_out: ${{ inputs.op_env_file_out }}
 
 jobs:
   Build:
@@ -68,6 +70,8 @@ jobs:
       namespace: ${{ inputs.namespace }}
       dockerfile: ${{ inputs.dockerfile }}
       image_tag: ${{ inputs.image_tag }}
+      op_env_file: ${{ inputs.op_env_file }}
+      op_env_file_out: ${{ inputs.op_env_file_out }
     secrets:
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
