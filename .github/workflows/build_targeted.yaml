@@ -121,7 +121,7 @@ jobs:
           file: ${{ inputs.op_env_file }}
           outputf: ${{ inputs.op_env_file_out }}
         run: |
-          op document get "$file" --out-file=$outputf
+          op document get $file --out-file=$outputf
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v3
