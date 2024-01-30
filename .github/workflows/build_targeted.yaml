@@ -118,8 +118,10 @@ jobs:
         if: ${{ inputs.op_env_file }}
         env:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          file: ${{ inputs.op_env_file }}
+          outputf: ${{ inputs.op_env_file_out }}
         run: |
-          op document get "${{ secrets.op_env_file }}" --out-file=${{ secrets.op_env_file_out }}
+          op document get "$file" --out-file=$outputf
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v3
