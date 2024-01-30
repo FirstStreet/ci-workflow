@@ -42,6 +42,8 @@ on:
         required: true
       AWS_SECRET_ACCESS_KEY:
         required: true
+      OP_SERVICE_ACCOUNT_TOKEN:
+        required: false
       SUBTREE_TOKEN:
         required: false
 
