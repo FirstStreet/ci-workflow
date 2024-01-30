@@ -30,13 +30,13 @@ on:
         required: false
         type: string
       op_env_file:
-          default: ""
-          required: false
-          type: string
+        default: ""
+        required: false
+        type: string
       op_env_file_out:
-          default: ".env"
-          required: false
-          type: string
+        default: ".env"
+        required: false
+        type: string
     secrets:
       AWS_ACCESS_KEY_ID:
         required: true
@@ -51,6 +51,8 @@ env:
   IMAGE_TAG: ${{ inputs.image_tag }}
   NAMESPACE: ${{ inputs.namespace }}
   DOCKERFILE: ${{ inputs.dockerfile }}
+  op_env_file: $ {{ inputs.op_env_file }}
+  op_env_file_out: $ {{ inputs.op_env_file_out }}
 
 jobs:
   Build:
@@ -110,7 +112,7 @@ jobs:
         if: ${{ inputs.op_env_file }}
         uses: 1password/install-cli-action@v1
 
-      - name: 'Create env file'
+      - name: "Create env file"
         if: ${{ inputs.op_env_file }}
         env:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
