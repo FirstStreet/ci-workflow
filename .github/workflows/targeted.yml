@@ -51,6 +51,7 @@ on:
         required: true
       OP_SERVICE_ACCOUNT_TOKEN:
         required: false
+        
 
 env:
   REGISTRY: ghcr.io
