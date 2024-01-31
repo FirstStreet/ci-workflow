@@ -29,11 +29,21 @@ on:
         default: "build"
         required: false
         type: string
+      op_env_file:
+        default: ""
+        required: false
+        type: string
+      op_env_file_out:
+        default: ".env"
+        required: false
+        type: string
     secrets:
       AWS_ACCESS_KEY_ID:
         required: true
       AWS_SECRET_ACCESS_KEY:
         required: true
+      OP_SERVICE_ACCOUNT_TOKEN:
+        required: false
       SUBTREE_TOKEN:
         required: false
 
@@ -43,6 +53,8 @@ env:
   IMAGE_TAG: ${{ inputs.image_tag }}
   NAMESPACE: ${{ inputs.namespace }}
   DOCKERFILE: ${{ inputs.dockerfile }}
+  op_env_file: $ {{ inputs.op_env_file }}
+  op_env_file_out: $ {{ inputs.op_env_file_out }}
 
 jobs:
   Build:
@@ -97,6 +109,19 @@ jobs:
             type=ref,event=branch
             type=ref,event=pr
             type=sha,format=long,suffix=-${{ env.NAMESPACE }}
+
+      - name: Install 1Password CLI
+        if: ${{ inputs.op_env_file }}
+        uses: 1password/install-cli-action@v1
+
+      - name: "Create env file"
+        if: ${{ inputs.op_env_file }}
+        env:
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          file: ${{ inputs.op_env_file }}
+          outputf: ${{ inputs.op_env_file_out }}
+        run: |
+          op document get $file --out-file=$outputf
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v3
