@@ -42,7 +42,7 @@ env:
 
 jobs:
   Deploy:
-    runs-on: ubuntu-latest
+    runs-on: aws
     # environment: ${{needs.Build.outputs.appenv}}
     steps:
       - uses: actions/checkout@v3
