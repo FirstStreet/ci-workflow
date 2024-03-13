@@ -29,6 +29,18 @@ on:
         default: "build"
         required: false
         type: string
+      var_replace_find:
+        default: ""
+        required: false
+        type: string
+      var_replace_with:
+        default: ""
+        required: false
+        type: string
+      var_replace_include:
+        default: ""
+        required: false
+        type: string           
       op_env_file:
         default: ""
         required: false
