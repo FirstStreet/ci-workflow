@@ -78,6 +78,15 @@ jobs:
           path: ${{ inputs.subtree_path }}
           ref: ${{ inputs.subtree_ref }}
 
+      - name: Find and Replace
+        if: ${{ inputs.var_replace_find }}
+        uses: jacobtomlinson/gha-find-replace@v3
+        with:
+          find: ${{ inputs.var_replace_find }}
+          include: ${{ inputs.var_replace_include }}
+          replace: ${{ inputs.var_replace_with }}
+          regex: false
+
       - name: Setup buildx
         uses: docker/setup-buildx-action@v2
         id: buildx
