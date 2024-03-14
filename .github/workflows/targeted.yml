@@ -56,6 +56,10 @@ on:
         default: ".env"
         required: false
         type: string
+      force_docker_push:
+        default: false
+        required: false
+        type: boolean        
     secrets:
       AWS_ACCESS_KEY_ID:
         required: true
@@ -87,6 +91,7 @@ jobs:
       image_tag: ${{ inputs.image_tag }}
       op_env_file: ${{ inputs.op_env_file }}
       op_env_file_out: ${{ inputs.op_env_file_out }}
+      force_docker_push: ${{ inputs.force_docker_push }}
     secrets:
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
