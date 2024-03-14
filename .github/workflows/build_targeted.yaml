@@ -40,7 +40,7 @@ on:
       var_replace_include:
         default: ""
         required: false
-        type: string           
+        type: string
       op_env_file:
         default: ""
         required: false
@@ -49,6 +49,10 @@ on:
         default: ".env"
         required: false
         type: string
+      force_docker_push:
+        default: false
+        required: false
+        type: boolean
     secrets:
       AWS_ACCESS_KEY_ID:
         required: true
@@ -148,7 +152,7 @@ jobs:
         uses: docker/build-push-action@v3
         with:
           context: .
-          push: ${{ github.event_name != 'pull_request' }}
+          push: ${{ (github.event_name != 'pull_request') || (inputs.force_docker_push == true) }}
           file: ${{ env.DOCKERFILE }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
