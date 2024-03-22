@@ -78,15 +78,13 @@ jobs:
     permissions:
       contents: read
       packages: write
-    # outputs:
-    #   appenv: ${{ steps.setappenv.outputs.env }}
 
     steps:
       - name: checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: checkout subtree
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         if: ${{ inputs.needs_subtree }}
         with:
           repository: ${{ inputs.subtree_repo }}
@@ -156,19 +154,5 @@ jobs:
           file: ${{ env.DOCKERFILE }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=local,src=/tmp/.buildx-cache
-          cache-to: type=local,dest=/tmp/.buildx-cache-new
-
-      - name: Move cache
-        run: |
-          rm -rf /tmp/.buildx-cache
-          mv /tmp/.buildx-cache-new /tmp/.buildx-cache
-
-      # This only works for pub repos
-      # - id: setappenv
-      #   run: |
-      #     if [[ "$GITHUB_REF_NAME" == *"develop"* ]]; then
-      #       echo "::set-output name=DEPLOY_ENV::development"
-      #     elif [[ "$GITHUB_REF_NAME" == *"master"* ]]; then
-      #       echo "::set-output name=DEPLOY_ENV::production"
-      #     fi
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
