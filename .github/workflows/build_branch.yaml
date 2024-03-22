@@ -68,9 +68,9 @@ jobs:
         uses: actions/cache@v3
         with:
           path: /tmp/.buildx-cache
-          key: ${{ runner.os }}-buildx-${{ github.sha }}-v2
+          key: ${{ runner.os }}-buildx-${{ github.ref_name }}-v2
           restore-keys: |
-            ${{ runner.os }}-buildx-${{ github.sha }}-v2
+            ${{ runner.os }}-buildx-${{ github.ref_name }}-v2
 
       - name: Log in to the Container registry
         uses: docker/login-action@v3
