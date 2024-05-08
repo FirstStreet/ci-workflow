@@ -78,8 +78,6 @@ jobs:
     permissions:
       contents: read
       packages: write
-    # outputs:
-    #   appenv: ${{ steps.setappenv.outputs.env }}
 
     steps:
       - name: checkout
@@ -113,9 +111,9 @@ jobs:
         uses: actions/cache@v4
         with:
           path: /tmp/.buildx-cache
-          key: ${{ runner.os }}-buildx-${{ github.sha }}-${{ env.NAMESPACE }}
+          key: ${{ runner.os }}-buildx-${{ github.ref_name }}-${{ env.NAMESPACE }}
           restore-keys: |
-            ${{ runner.os }}-buildx-${{ github.sha }}-${{ env.NAMESPACE }}
+            ${{ runner.os }}-buildx-${{ github.ref_name }}-${{ env.NAMESPACE }}
 
       - name: Log in to the Container registry
         uses: docker/login-action@v3
@@ -156,19 +154,5 @@ jobs:
           file: ${{ env.DOCKERFILE }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=local,src=/tmp/.buildx-cache
-          cache-to: type=local,dest=/tmp/.buildx-cache-new
-
-      - name: Move cache
-        run: |
-          rm -rf /tmp/.buildx-cache
-          mv /tmp/.buildx-cache-new /tmp/.buildx-cache
-
-      # This only works for pub repos
-      # - id: setappenv
-      #   run: |
-      #     if [[ "$GITHUB_REF_NAME" == *"develop"* ]]; then
-      #       echo "::set-output name=DEPLOY_ENV::development"
-      #     elif [[ "$GITHUB_REF_NAME" == *"master"* ]]; then
-      #       echo "::set-output name=DEPLOY_ENV::production"
-      #     fi
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
