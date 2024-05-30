@@ -101,7 +101,7 @@ jobs:
 
       - name: Find and Replace
         if: ${{ inputs.var_replace_find }}
-        uses: FirstStreet/gha-find-replace@master
+        uses: firststreet/gha-find-replace@latest
         with:
           find: ${{ inputs.var_replace_find }}
           include: ${{ inputs.var_replace_include }}
