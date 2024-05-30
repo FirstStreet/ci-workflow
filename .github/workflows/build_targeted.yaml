@@ -94,7 +94,7 @@ jobs:
 
       - name: Find and Replace
         if: ${{ inputs.var_replace_find }}
-        uses: jacobtomlinson/gha-find-replace@v3
+        uses: FirstStreet/gha-find-replace@master
         with:
           find: ${{ inputs.var_replace_find }}
           include: ${{ inputs.var_replace_include }}
