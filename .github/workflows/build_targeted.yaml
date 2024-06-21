@@ -92,6 +92,10 @@ jobs:
           path: ${{ inputs.subtree_path }}
           ref: ${{ inputs.subtree_ref }}
 
+      - name: "ghcr logout"
+        run: |
+          docker logout ghcr.io
+
       - name: Log in to the Container registry
         uses: docker/login-action@v3
         with:
