@@ -101,7 +101,7 @@ jobs:
 
       - name: Find and Replace
         if: ${{ inputs.var_replace_find }}
-        uses: richardrigutins/replace-in-files@v2.1.5
+        uses: richardrigutins/replace-in-files@v3
         with:
           files: ${{ inputs.var_replace_files }}
           find: ${{ inputs.var_replace_find }}
