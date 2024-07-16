@@ -101,9 +101,8 @@ jobs:
 
       - name: Find and Replace
         if: ${{ inputs.var_replace_find }}
-        uses: richardrigutins/replace-in-files@v3
+        uses: jacobtomlinson/gha-find-replace@v3
         with:
-          files: ${{ inputs.var_replace_files }}
           find: ${{ inputs.var_replace_find }}
           include: ${{ inputs.var_replace_include }}
           replace: ${{ inputs.var_replace_with }}
