@@ -80,10 +80,6 @@ jobs:
       packages: write
 
     steps:
-      - name: "ghcr logout"
-        run: |
-          docker logout ghcr.io
-
       - name: checkout
         uses: actions/checkout@v4
 
@@ -160,3 +156,7 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      - name: "ghcr logout"
+        run: |
+          docker logout ghcr.io
