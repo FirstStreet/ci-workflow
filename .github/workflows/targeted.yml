@@ -67,6 +67,8 @@ on:
         required: true
       OP_SERVICE_ACCOUNT_TOKEN:
         required: false
+      SENTRY_AUTH_TOKEN:
+        required: false
 
 
 env:
@@ -99,6 +101,7 @@ jobs:
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+      SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
 
   Deploy:
     needs: [Build]
