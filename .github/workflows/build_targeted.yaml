@@ -76,7 +76,7 @@ env:
 
 jobs:
   Build:
-    runs-on: aws
+    runs-on: aws-mega
     permissions:
       contents: read
       packages: write
