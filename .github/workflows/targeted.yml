@@ -8,6 +8,10 @@ on:
       helm_name:
         required: true
         type: string
+      helm_timeout:
+        default: "300s"
+        required: false
+        type: string
       namespace:
         required: true
         type: string
@@ -76,6 +80,7 @@ env:
   IMAGE_NAME: ${{ github.repository }}
   APP_NAME: ${{ inputs.appname }}
   HELM_NAME: ${{ inputs.helm_name }}
+  HELM_TIMEOUT: ${{ inputs.helm_timeout }}
   NAMESPACE: ${{ inputs.namespace }}
   HELM_CONFIG: ${{ inputs.helm_config }}
   SIMPLE_DEPLOY: ${{ inputs.simple_deploy }}
@@ -109,6 +114,7 @@ jobs:
     with:
       appname: ${{ inputs.appname }}
       helm_name: ${{ inputs.helm_name }}
+      helm_timeout: ${{ inputs.helm_timeout }}
       namespace: ${{ inputs.namespace }}
       helm_config: ${{ inputs.helm_config }}
       use_ssm: ${{ inputs.use_ssm }}
