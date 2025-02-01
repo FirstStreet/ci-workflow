@@ -1,0 +1,119 @@
+name: Build and Deploy
+on:
+  workflow_call:
+    inputs:
+      aws_account_id:
+        required: true
+        type: string
+      appname:
+        required: true
+        type: string
+      helm_name:
+        required: true
+        type: string
+      helm_timeout:
+        default: "300s"
+        required: false
+        type: string
+      namespace:
+        required: true
+        type: string
+      helm_config:
+        required: true
+        type: string
+      use_ssm:
+        default: true
+        required: false
+        type: boolean
+      simple_deploy:
+        default: false
+        required: false
+        type: boolean
+      dockerfile:
+        default: "Dockerfile"
+        required: false
+        type: string
+      eks_cluster:
+        default: potato-pie
+        required: false
+        type: string
+      image_tag:
+        # A tag name must be a valid ASCII chars sequence and may contain lowercase letters, digits, underscores, periods and dashes. A tag name may not start with a period or a dash and may contain a maximum of 128 characters.
+        # Here we are using neutral "build" label in the absence of provided label.
+        default: "build"
+        required: false
+        type: string
+      var_replace_find:
+        default: ""
+        required: false
+        type: string
+      var_replace_with:
+        default: ""
+        required: false
+        type: string
+      var_replace_include:
+        default: ""
+        required: false
+        type: string
+      op_env_file:
+        default: ""
+        required: false
+        type: string
+      op_env_file_out:
+        default: ".env"
+        required: false
+        type: string
+      force_docker_push:
+        default: false
+        required: false
+        type: boolean
+    secrets:
+      OP_SERVICE_ACCOUNT_TOKEN:
+        required: false
+      SENTRY_AUTH_TOKEN:
+        required: false
+
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+  APP_NAME: ${{ inputs.appname }}
+  HELM_NAME: ${{ inputs.helm_name }}
+  HELM_TIMEOUT: ${{ inputs.helm_timeout }}
+  NAMESPACE: ${{ inputs.namespace }}
+  HELM_CONFIG: ${{ inputs.helm_config }}
+  SIMPLE_DEPLOY: ${{ inputs.simple_deploy }}
+  USE_SSM: ${{ inputs.use_ssm }}
+  DOCKERFILE: ${{ inputs.dockerfile }}
+  op_env_file: ${{ inputs.op_env_file }}
+  op_env_file_out: ${{ inputs.op_env_file_out }}
+
+jobs:
+  Build:
+    uses: ./.github/workflows/build_with_role.yaml
+    with:
+      namespace: ${{ inputs.namespace }}
+      dockerfile: ${{ inputs.dockerfile }}
+      image_tag: ${{ inputs.image_tag }}
+      op_env_file: ${{ inputs.op_env_file }}
+      op_env_file_out: ${{ inputs.op_env_file_out }}
+      var_replace_find: ${{ inputs.var_replace_find }}
+      var_replace_with: ${{ inputs.var_replace_with }}
+      var_replace_include: ${{ inputs.var_replace_include }}
+      force_docker_push: ${{ inputs.force_docker_push }}
+    secrets:
+      OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+      SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+
+  Deploy:
+    needs: [Build]
+    uses: ./.github/workflows/deploy_with_role.yaml
+    with:
+      appname: ${{ inputs.appname }}
+      helm_name: ${{ inputs.helm_name }}
+      helm_timeout: ${{ inputs.helm_timeout }}
+      namespace: ${{ inputs.namespace }}
+      helm_config: ${{ inputs.helm_config }}
+      use_ssm: ${{ inputs.use_ssm }}
+      simple_deploy: ${{ inputs.simple_deploy }}
+      eks_cluster: ${{ inputs.eks_cluster }}
