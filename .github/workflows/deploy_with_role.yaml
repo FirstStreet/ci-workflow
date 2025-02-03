@@ -76,8 +76,8 @@ jobs:
       - name: AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4.0.3
         with:
-          role-to-assume: arn:aws:iam::$AWS_ACCOUNT_ID:role/GitHubAction-AssumeRoleWithAction
-          role-session-name: GitHub_to_AWS_via_FederatedOIDC
+          role-to-assume: arn:aws:iam::276656326065:role/GitHubAction-AssumeRoleWithAction
+          role-session-name: GitHub_to_AWS_via_FederatedOIDC_ForDeployment
           aws-region: us-east-1
 
       - name: Deploying Namespace
