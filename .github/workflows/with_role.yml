@@ -117,3 +117,4 @@ jobs:
       use_ssm: ${{ inputs.use_ssm }}
       simple_deploy: ${{ inputs.simple_deploy }}
       eks_cluster: ${{ inputs.eks_cluster }}
+      aws_account_id: ${{ inputs.aws_account_id }}
