@@ -43,6 +43,7 @@ env:
   HELM_CONFIG: ${{ inputs.helm_config }}
   SIMPLE_DEPLOY: ${{ inputs.simple_deploy }}
   USE_SSM: ${{ inputs.use_ssm }}
+  EKS_CLUSTER: ${{ inputs.eks_cluster }}
 
 permissions:
   id-token: write
