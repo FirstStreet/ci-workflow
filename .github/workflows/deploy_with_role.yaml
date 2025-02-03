@@ -88,6 +88,7 @@ jobs:
 
       - name: Deploy
         run: |
+          kubectl get svc
           aws eks update-kubeconfig --name ${{ inputs.eks_cluster }}
           if [[ $USE_SSM == true ]]; then
             helm plugin remove ssm || true
@@ -98,6 +99,7 @@ jobs:
           sed -i "s/^appVersion:.*$/appVersion: \"$(git describe)\"/" _k/$APP_NAME/Chart.yaml
 
           if [[ $SIMPLE_DEPLOY == true ]]; then
+            echo "Starting upgrade"
             helm upgrade $HELM_NAME _k/$APP_NAME --install --namespace $NAMESPACE --set app.image.tag=sha-$GITHUB_SHA-$NAMESPACE -f $VALUES --wait --timeout $HELM_TIMEOUT --debug
           else
             helm upgrade $HELM_NAME _k/$APP_NAME --install --namespace $NAMESPACE --set app.image.tag=sha-$GITHUB_SHA-$NAMESPACE,app.config=$CONF_ENV,volume.path=$CONF_ENV.conf -f $VALUES --wait --timeout $HELM_TIMEOUT --debug
