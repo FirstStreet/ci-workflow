@@ -1,0 +1,90 @@
+name: CDK Deploy
+
+on:
+  workflow_call:
+    inputs:
+      env_name:
+        required: true
+        type: string
+      aws_region:
+        required: true
+        type: string
+      subtree_repo:
+        default: ""
+        required: false
+        type: string
+      subtree_ref:
+        default: main
+        required: false
+        type: string
+      deploy_ecr:
+        required: true
+        type: boolean
+      deploy_docker_image:
+        required: true
+        type: boolean
+      deploy_batch:
+        required: true
+        type: boolean
+    secrets:
+      SUBTREE_TOKEN:
+        required: true
+
+env:
+  GOPRIVATE: github.com/FirstStreet/*
+  ENV: ${{ inputs.env_name }}
+
+jobs:
+  Build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: checkout subtree
+        uses: actions/checkout@v4
+        if: ${{ inputs.needs_subtree }}
+        with:
+          repository: ${{ inputs.subtree_repo }}
+          token: ${{ secrets.SUBTREE_TOKEN }}
+          ref: ${{ inputs.subtree_ref }}
+
+      - name: Setup Env
+        uses: actions/setup-go@v4
+        with:
+          go-version: 1.22
+
+      - name: configure aws credentials
+        uses: aws-actions/configure-aws-credentials@v4.0.3
+        with:
+          role-to-assume: arn:aws:iam::276656326065:role/GitHubAction-AssumeRoleWithAction
+          role-session-name: GitHub_to_AWS_via_FederatedOIDC
+          aws-region: ${{ inputs.aws_region }}
+
+      - name: Install and set deployment dependencies
+        run: |
+          go get github.com/FirstStreet/fs-deployment-pipeline@v0.0.5
+          npm install -g aws-cdk 
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3.8.0
+
+      - name: Deploy ECR
+        if: ${{ inputs.deploy_ecr }}
+        run: |
+          export COMPONENT=ecr 
+          cdk deploy --require-approval never
+      
+      - name: Deploy Docker
+        if: ${{ inputs.deploy_docker_image }}
+        run: |
+          export COMPONENT=docker
+          cdk deploy
+      
+      - name: Deploy Batch
+        if: ${{ inputs.deploy_batch }}
+        run: |
+          export COMPONENT=batch
+          cdk deploy --require-approval never
+
+        
