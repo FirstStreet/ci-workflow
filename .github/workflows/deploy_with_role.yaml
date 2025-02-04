@@ -78,7 +78,7 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v4.0.3
         with:
           role-to-assume: "arn:aws:iam::${{env.AWS_ACCOUNT_ID}}:role/GitHubAction-AssumeRoleWithAction"
-          role-session-name: GithubActions-${{ github.event.repository.name }}-${{ inputs.helm_name }}-${{ input.helm_config }}-${{ github.sha }}
+          role-session-name: GithubActions-${{ github.event.repository.name }}-${{ inputs.helm_name }}-${{ inputs.helm_config }}-${{ github.sha }}
           aws-region: us-east-1
 
       - name: Deploying Namespace
