@@ -13,10 +13,6 @@ on:
         default: ""
         required: false
         type: string
-      subtree_ref:
-        default: main
-        required: false
-        type: string
       deploy_ecr:
         required: true
         type: boolean
@@ -47,7 +43,7 @@ jobs:
         with:
           repository: ${{ inputs.subtree_repo }}
           token: ${{ secrets.SUBTREE_TOKEN }}
-          ref: ${{ inputs.subtree_ref }}
+          ref: ${{ github.ref_name }}
 
       - name: Setup Env
         uses: actions/setup-go@v4
