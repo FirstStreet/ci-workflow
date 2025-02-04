@@ -88,8 +88,10 @@ jobs:
 
       - name: Deploy
         run: |
-          kubectl get svc
           aws eks update-kubeconfig --name ${{ inputs.eks_cluster }}
+          
+          kubectl get svc
+          
           if [[ $USE_SSM == true ]]; then
             helm plugin remove ssm || true
             helm plugin add https://github.com/seripap/helm-ssm || true
