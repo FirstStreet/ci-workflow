@@ -3,16 +3,21 @@ name: CDK Deploy
 on:
   workflow_call:
     inputs:
-      env_name:
-        required: true
-        type: string
       aws_region:
         required: true
         type: string
       subtree_repo:
-        default: ""
         required: false
         type: string
+        default: FirstStreet/fs-deployment-pipeline
+      subtree_path:
+        required: false
+        type: string
+        default: deployments
+      subtree_ref:
+        required: false
+        type: string
+        default: main
       deploy_ecr:
         required: true
         type: boolean
@@ -22,28 +27,47 @@ on:
       deploy_batch:
         required: true
         type: boolean
+      runs_on:
+        required: false
+        type: string
+        default: ubuntu-latest
+
+      env: 
+        required: true
+        type: string
+      region:
+        required: true
+        type: string
+      stack_id_prefix:
+        required: true
+        type: string
+      ecr_repo_name:
+        required: false
+        type: string
+
     secrets:
       SUBTREE_TOKEN:
         required: true
 
-env:
-  GOPRIVATE: github.com/FirstStreet/*
-  ENV: ${{ inputs.env_name }}
-
 jobs:
   Build:
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runs_on }}
+    env:
+      ENV: ${{ inputs.env }}
+      REGION: ${{ inputs.region }}
+      STACK_ID_PREFIX: ${{ inputs.stack_id_prefix }}
+      ECR_REPO_NAME: ${{ inputs.ecr_repo_name }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
       - name: checkout subtree
         uses: actions/checkout@v4
-        if: ${{ inputs.needs_subtree }}
         with:
           repository: ${{ inputs.subtree_repo }}
           token: ${{ secrets.SUBTREE_TOKEN }}
-          ref: ${{ github.ref_name }}
+          ref: ${{ inputs.subtree_ref }}
+          path: ${{ inputs.subtree_path }}
 
       - name: Setup Env
         uses: actions/setup-go@v4
@@ -57,10 +81,15 @@ jobs:
           role-session-name: GitHub_to_AWS_via_FederatedOIDC
           aws-region: ${{ inputs.aws_region }}
 
-      - name: Install and set deployment dependencies
+      - name: go mods
         run: |
-          go get github.com/FirstStreet/fs-deployment-pipeline@v0.0.5
-          npm install -g aws-cdk 
+          cd deployments 
+          go mod tidy      
+          go mod vendor
+          cd ..  
+
+      - name: Install deployment dependencies
+        run: npm install -g aws-cdk 
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3.8.0
@@ -68,19 +97,25 @@ jobs:
       - name: Deploy ECR
         if: ${{ inputs.deploy_ecr }}
         run: |
-          export COMPONENT=ecr 
-          cdk deploy --require-approval never
+          export COMPONENT=ecr
+          cd deployments 
+          cdk deploy --require-approval never --app "go mod download && go run ./deployments/deployModels.go ./deployments/helpers.go ./deployments/deploy.go"
+          cd ..
       
       - name: Deploy Docker
         if: ${{ inputs.deploy_docker_image }}
         run: |
           export COMPONENT=docker
-          cdk deploy
+          cd deployments
+          cdk deploy --require-approval never --app "go mod download && go run ./deployments/deployModels.go ./deployments/helpers.go ./deployments/deploy.go"
+          cd ..
       
       - name: Deploy Batch
         if: ${{ inputs.deploy_batch }}
         run: |
           export COMPONENT=batch
-          cdk deploy --require-approval never
+          cd deployments 
+          cdk deploy --require-approval never --app "go mod download && go run ./deployments/deployModels.go ./deployments/helpers.go ./deployments/deploy.go"
+          cd ..
 
         
