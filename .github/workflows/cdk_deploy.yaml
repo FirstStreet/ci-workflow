@@ -38,6 +38,10 @@ on:
         required: false
         default: false
         type: boolean
+      go_build_arch:
+        required: false
+        default: amd64
+        type: string
 
       # Deployment parameters for CDK
       ENV:
@@ -73,6 +77,9 @@ on:
       LAMBDA_HANDLER_NAME:
         required: false
         type: string
+      LAMBDA_RUNTIME_ARCH:
+        required: false
+        type: string
       BATCH_CLUSTER_TYPE:
         required: false
         type: string
@@ -103,13 +110,14 @@ jobs:
       ENV: ${{ inputs.ENV }}
       STACK_ID_PREFIX: ${{ inputs.STACK_ID_PREFIX }}
       ECR_REPO_NAME: ${{ inputs.ECR_REPO_NAME }}
-      LAMBDA_ASSET_PATH: ${{ inputs.LAMBDA_ASSET_PATH }}
       SOURCE_EVENT_BUS_NAME: ${{ inputs.SOURCE_EVENT_BUS_NAME }}
       SOURCE_EVENT_SOURCES: ${{ inputs.SOURCE_EVENT_SOURCES }}
       SOURCE_EVENT_DETAIL_TYPES: ${{ inputs.SOURCE_EVENT_DETAIL_TYPES }}
-      LAMBDA_FUNC_NAME: ${{ inputs.LAMBDA_FUNC_NAME }}
       EVENT_RULE_NAME: ${{ inputs.EVENT_RULE_NAME }}
+      LAMBDA_FUNC_NAME: ${{ inputs.LAMBDA_FUNC_NAME }}
+      LAMBDA_ASSET_PATH: ${{ inputs.LAMBDA_ASSET_PATH }}
       LAMBDA_HANDLER_NAME: ${{ inputs.LAMBDA_HANDLER_NAME }}
+      LAMBDA_RUNTIME_ARCH: ${{ inputs.LAMBDA_RUNTIME_ARCH}}
       ACCOUNT_ID: ${{ inputs.ACCOUNT_ID }}
       REGION: ${{ inputs.aws_region }}
       BATCH_CLUSTER_TYPE: ${{ inputs.BATCH_CLUSTER_TYPE }}
@@ -118,6 +126,7 @@ jobs:
       BATCH_SECURITY_GROUP_IDS: ${{ inputs.BATCH_SECURITY_GROUP_IDS }}
       BATCH_DISK_STORAGE: ${{ inputs.BATCH_DISK_STORAGE }}
       BATCH_RUNTIME_CPU: ${{ inputs.BATCH_RUNTIME_CPU }}
+      
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -182,6 +191,9 @@ jobs:
       - name: Deploy Event Lambda Rule
         if: ${{ inputs.deploy_lambda_event_rule }}
         run: |
+          CGO_ENABLED=0 GOARCH=${{ inputs.go_build_arch }} GOOS=linux go build -a -ldflags '-s -w' -o ./${{ inputs.LAMBDA_ASSET_PATH }}/${{ inputs.LAMBDA_FUNC_NAME }} ./${{ inputs.LAMBDA_ASSET_PATH }}
+          echo -e "#!/bin/sh\n./${{ inputs.LAMBDA_FUNC_NAME }}" > ./${{ inputs.LAMBDA_ASSET_PATH }}/bootstrap
+          chmod +x ./${{ inputs.LAMBDA_ASSET_PATH }}/bootstrap
           export COMPONENT=eventrulesimplelambda
           cd deployments 
           cdk deploy --require-approval never --app "go mod download && go run ./deployments/deployModels.go ./deployments/helpers.go ./deployments/deploy.go"
