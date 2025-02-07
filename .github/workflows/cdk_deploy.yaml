@@ -1,0 +1,200 @@
+name: CDK Deploy
+
+on:
+  workflow_call:
+    inputs:
+      runs_on:
+        required: false
+        type: string
+        default: ubuntu-latest
+      aws_region:
+        required: false
+        type: string
+        default: us-east-1
+      subtree_repo:
+        required: false
+        type: string
+        default: FirstStreet/fs-deployment-pipeline
+      subtree_path:
+        required: false
+        type: string
+        default: deployments
+      subtree_ref:
+        required: false
+        type: string
+        default: main
+      deploy_ecr:
+        required: false
+        default: false
+        type: boolean
+      deploy_docker_image:
+        required: false
+        default: false
+        type: boolean
+      deploy_batch:
+        required: false
+        default: false
+        type: boolean
+      deploy_lambda_event_rule:
+        required: false
+        default: false
+        type: boolean
+      go_build_arch:
+        required: false
+        default: amd64
+        type: string
+
+      # Deployment parameters for CDK
+      ENV:
+        required: true
+        type: string
+      STACK_ID_PREFIX:
+        required: true
+        type: string
+      ACCOUNT_ID:
+        required: true
+        type: string
+      ECR_REPO_NAME:
+        required: false
+        type: string
+      LAMBDA_FUNC_NAME:
+        required: false
+        type: string
+      LAMBDA_ASSET_PATH:
+        required: false
+        type: string
+      LAMBDA_HANDLER_NAME:
+        required: false
+        type: string
+      EVENT_RULE_NAME:
+        required: false
+        type: string
+      LAMBDA_RUNTIME_ARCH:
+        required: false
+        type: string
+      SOURCE_EVENT_BUS_NAME:
+        required: false
+        type: string
+      SOURCE_EVENT_SOURCES:
+        required: false
+        type: string
+      SOURCE_EVENT_DETAIL_TYPES:
+        required: false
+        type: string
+      BATCH_CLUSTER_TYPE:
+        required: false
+        type: string
+      BATCH_MAX_VCPUS:
+        required: false
+        type: string
+      BATCH_SUBNET_IDS:
+        required: false
+        type: string
+      BATCH_SECURITY_GROUP_IDS:
+        required: false
+        type: string
+      BATCH_DISK_STORAGE:
+        required: false
+        type: string
+      BATCH_RUNTIME_CPU:
+        required: false
+        type: string
+    secrets:
+      SUBTREE_TOKEN:
+        required: true
+
+jobs:
+  Build:
+    runs-on: ${{ inputs.runs_on }}
+    env:
+      ENV: ${{ inputs.ENV }}
+      STACK_ID_PREFIX: ${{ inputs.STACK_ID_PREFIX }}
+      ECR_REPO_NAME: ${{ inputs.ECR_REPO_NAME }}
+      SOURCE_EVENT_BUS_NAME: ${{ inputs.SOURCE_EVENT_BUS_NAME }}
+      SOURCE_EVENT_SOURCES: ${{ inputs.SOURCE_EVENT_SOURCES }}
+      SOURCE_EVENT_DETAIL_TYPES: ${{ inputs.SOURCE_EVENT_DETAIL_TYPES }}
+      EVENT_RULE_NAME: ${{ inputs.EVENT_RULE_NAME }}
+      LAMBDA_FUNC_NAME: ${{ inputs.LAMBDA_FUNC_NAME }}
+      LAMBDA_ASSET_PATH: ${{ inputs.LAMBDA_ASSET_PATH }}
+      LAMBDA_HANDLER_NAME: ${{ inputs.LAMBDA_HANDLER_NAME }}
+      LAMBDA_RUNTIME_ARCH: ${{ inputs.LAMBDA_RUNTIME_ARCH}}
+      ACCOUNT_ID: ${{ inputs.ACCOUNT_ID }}
+      REGION: ${{ inputs.aws_region }}
+      BATCH_CLUSTER_TYPE: ${{ inputs.BATCH_CLUSTER_TYPE }}
+      BATCH_MAX_VCPUS: ${{ inputs.BATCH_MAX_VCPUS }}
+      BATCH_SUBNET_IDS: ${{ inputs.BATCH_SUBNET_IDS }}
+      BATCH_SECURITY_GROUP_IDS: ${{ inputs.BATCH_SECURITY_GROUP_IDS }}
+      BATCH_DISK_STORAGE: ${{ inputs.BATCH_DISK_STORAGE }}
+      BATCH_RUNTIME_CPU: ${{ inputs.BATCH_RUNTIME_CPU }}
+      
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: checkout subtree
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ inputs.subtree_repo }}
+          token: ${{ secrets.SUBTREE_TOKEN }}
+          ref: ${{ inputs.subtree_ref }}
+          path: ${{ inputs.subtree_path }}
+
+      - name: Setup Env
+        uses: actions/setup-go@v4
+        with:
+          go-version: 1.23
+
+      - name: configure aws credentials
+        uses: aws-actions/configure-aws-credentials@v4.0.3
+        with:
+          role-to-assume: arn:aws:iam::${{ inputs.ACCOUNT_ID }}:role/GitHubAction-AssumeRoleWithAction
+          role-session-name: GitHub_to_AWS_via_FederatedOIDC
+          aws-region: ${{ inputs.aws_region }}
+
+      - name: go mods
+        run: |
+          cd ${{ inputs.subtree_path }} 
+          go mod tidy      
+          go mod vendor
+          cd ..  
+
+      - name: Install deployment dependencies
+        run: npm install -g aws-cdk 
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3.8.0
+
+      - name: Deploy ECR
+        if: ${{ inputs.deploy_ecr }}
+        run: |
+          export COMPONENT=ecr
+          cd ${{ inputs.subtree_path }} 
+          cdk deploy --require-approval never --app "go mod download && go run ./deployments/deployModels.go ./deployments/helpers.go ./deployments/deploy.go"
+          cd ..
+      
+      - name: Deploy Docker
+        if: ${{ inputs.deploy_docker_image }}
+        run: |
+          export COMPONENT=docker
+          cd ${{ inputs.subtree_path }} 
+          cdk deploy --require-approval never --app "go mod download && go run ./deployments/deployModels.go ./deployments/helpers.go ./deployments/deploy.go"
+          cd ..
+      
+      - name: Deploy Batch
+        if: ${{ inputs.deploy_batch }}
+        run: |
+          export COMPONENT=batch
+          cd ${{ inputs.subtree_path }} 
+          cdk deploy --require-approval never --app "go mod download && go run ./deployments/deployModels.go ./deployments/helpers.go ./deployments/deploy.go"
+          cd ..
+
+      - name: Deploy Event Lambda Rule
+        if: ${{ inputs.deploy_lambda_event_rule }}
+        run: |
+          CGO_ENABLED=0 GOARCH=${{ inputs.go_build_arch }} GOOS=linux go build -a -ldflags '-s -w' -o ./${{ inputs.LAMBDA_ASSET_PATH }}/${{ inputs.LAMBDA_FUNC_NAME }} ./${{ inputs.LAMBDA_ASSET_PATH }}
+          echo -e "#!/bin/sh\n./${{ inputs.LAMBDA_FUNC_NAME }}" > ./${{ inputs.LAMBDA_ASSET_PATH }}/bootstrap
+          chmod +x ./${{ inputs.LAMBDA_ASSET_PATH }}/bootstrap
+          export COMPONENT=eventrulesimplelambda
+          cd ${{ inputs.subtree_path }} 
+          cdk deploy --require-approval never --app "go mod download && go run ./deployments/deployModels.go ./deployments/helpers.go ./deployments/deploy.go"
+          cd ..
