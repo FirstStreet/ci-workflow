@@ -160,6 +160,12 @@ jobs:
           go mod vendor
           cd ..  
 
+      - name: Setup node
+        if: ${{ inputs.runs_on == 'aws' }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+
       - name: Install deployment dependencies
         run: npm install -g aws-cdk 
 
