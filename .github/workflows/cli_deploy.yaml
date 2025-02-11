@@ -100,7 +100,6 @@ jobs:
         if: ${{ inputs.deploy_service_account_with_policy }}
         run: |
             aws eks update-kubeconfig --name ${{ inputs.eks_cluster }}
-            cd ${{ inputs.subtree_path }} 
             
       - name: Deploy EKS service account with policy
         if: ${{ inputs.deploy_service_account_with_policy }}
