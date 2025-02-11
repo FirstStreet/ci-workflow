@@ -35,6 +35,10 @@ on:
         required: false
         default: false
         type: boolean
+      deploy_event_bridge_batch:
+        required: false
+        default: false
+        type: boolean
       deploy_lambda_event_rule:
         required: false
         default: false
@@ -93,6 +97,9 @@ on:
       BATCH_SECURITY_GROUP_IDS:
         required: false
         type: string
+      BATCH_JOB_COMMAND:
+        required: false
+        type: string
       BATCH_DISK_STORAGE:
         required: false
         type: string
@@ -126,6 +133,7 @@ jobs:
       BATCH_MAX_VCPUS: ${{ inputs.BATCH_MAX_VCPUS }}
       BATCH_SUBNET_IDS: ${{ inputs.BATCH_SUBNET_IDS }}
       BATCH_SECURITY_GROUP_IDS: ${{ inputs.BATCH_SECURITY_GROUP_IDS }}
+      BATCH_JOB_COMMAND: ${{ inputs.BATCH_JOB_COMMAND }}
       BATCH_DISK_STORAGE: ${{ inputs.BATCH_DISK_STORAGE }}
       BATCH_RUNTIME_CPU: ${{ inputs.BATCH_RUNTIME_CPU }}
       
@@ -194,6 +202,14 @@ jobs:
         run: |
           export COMPONENT=batch
           cd ${{ inputs.subtree_path }} 
+          cdk deploy --require-approval never --app "go mod download && go run ./deployments/deployModels.go ./deployments/helpers.go ./deployments/deploy.go"
+          cd ..
+
+      - name: Deploy Event Batch Rule
+        if: ${{ inputs.deploy_event_bridge_batch }}
+        run: |
+          export COMPONENT=eventbridgebatch
+          cd ${{ inputs.subtree_path }}
           cdk deploy --require-approval never --app "go mod download && go run ./deployments/deployModels.go ./deployments/helpers.go ./deployments/deploy.go"
           cd ..
 
