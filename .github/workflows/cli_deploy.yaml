@@ -8,7 +8,7 @@ on:
         description: runner type
         type: string
         default: ubuntu-latest
-      account_id: 
+      aws_account_id: 
         required: true
         description: AWS account ID
         type: string
@@ -60,7 +60,7 @@ jobs:
     runs-on: ${{ inputs.runs_on }}
     env:
       REGION: ${{ inputs.aws_region }}
-      ACCOUNT_ID: ${{ inputs.account_id }}
+      AWS_ACCOUNT_ID: ${{ inputs.aws_account_id }}
       SUBTREE_REPO: ${{ inputs.subtree_repo }}
       SUBTREE_PATH: ${{ inputs.subtree_path }}
       SUBTREE_REF: ${{ inputs.subtree_ref }}
@@ -86,7 +86,7 @@ jobs:
       - name: configure aws credentials
         uses: aws-actions/configure-aws-credentials@v4.0.3
         with:
-          role-to-assume: arn:aws:iam::${{ inputs.account_id }}:role/GitHubAction-AssumeRoleWithAction
+          role-to-assume: arn:aws:iam::${{ env.AWS_ACCOUNT_ID }}:role/GitHubAction-AssumeRoleWithAction
           role-session-name: GitHub_to_AWS_via_FederatedOIDC
           aws-region: ${{ inputs.aws_region }}
             
