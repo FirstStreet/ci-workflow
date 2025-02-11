@@ -55,6 +55,10 @@ on:
       SUBTREE_TOKEN:
         required: true
 
+permissions:
+  id-token: write
+  contents: read
+
 jobs:
   Build:
     runs-on: ${{ inputs.runs_on }}
