@@ -104,5 +104,9 @@ jobs:
       - name: Deploy EKS service account with policy
         if: ${{ inputs.deploy_service_account_with_policy }}
         run: |
+            cd $SUBTREE_PATH
             ls -la ./eks-role
             sh ./eks-role/create_role_for_eks.sh -policy ${{ env.POLICY_FILE }} -cluster ${{ env.EKS_CLUSTER }} -namespace ${{ env.NAMESPACE }} -service-account ${{ env.EKS_SERVICE_ACCOUNT_NAME }}
+
+      - name: Debug
+        run: ls -la ./eks-role
