@@ -18,7 +18,7 @@ on:
         description: AWS region
         default: us-east-1
       subtree_repo:
-        required: true
+        required: false
         type: string
         default: FirstStreet/fs-deployment-pipeline
       subtree_path:
@@ -26,7 +26,7 @@ on:
         type: string
         default: deployments
       subtree_ref:
-        required: true
+        required: false
         type: string
         default: main
       deploy_service_account_with_policy:
