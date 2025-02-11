@@ -3,10 +3,6 @@ name: CDK Deploy
 on:
   workflow_call:
     inputs:
-      env:
-        required: true
-        description: environment name
-        type: string
       runs_on:
         required: false
         description: runner type
@@ -63,8 +59,16 @@ jobs:
   Build:
     runs-on: ${{ inputs.runs_on }}
     env:
-      ENV: ${{ inputs.env }}
       REGION: ${{ inputs.aws_region }}
+      ACCOUNT_ID: ${{ inputs.account_id }}
+      SUBTREE_REPO: ${{ inputs.subtree_repo }}
+      SUBTREE_PATH: ${{ inputs.subtree_path }}
+      SUBTREE_REF: ${{ inputs.subtree_ref }}
+      EKS_SERVICE_ACCOUNT_NAME: ${{ inputs.eks_service_account_name }}
+      POLICY_FILE: ${{ inputs.policy_file }}
+      EKS_CLUSTER: ${{ inputs.eks_cluster }}
+      NAMESPACE: ${{ inputs.namespace }}
+      DEPLOY_SERVICE_ACCOUNT_WITH_POLICY: ${{ inputs.deploy_service_account_with_policy}}
       
     steps:
       - name: Checkout code
@@ -97,4 +101,4 @@ jobs:
       - name: Deploy EKS service account with policy
         if: ${{ inputs.deploy_service_account_with_policy }}
         run: |
-            sh ./eks-role/create_role_for_eks.sh -policy ${{ inputs.policy_file }} -cluster ${{ inputs.eks_cluster }} -namespace ${{ inputs.namespace }} -service-account ${{ inputs.eks_service_account_name }}
+            sh ./eks-role/create_role_for_eks.sh -policy ${{ env.POLICY_FILE }} -cluster ${{ env.EKS_CLUSTER }} -namespace ${{ env.NAMESPACE }} -service-account ${{ env.EKS_SERVICE_ACCOUNT_NAME }}
