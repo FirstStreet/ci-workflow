@@ -1,0 +1,100 @@
+name: CDK Deploy
+
+on:
+  workflow_call:
+    inputs:
+      env:
+        required: true
+        description: environment name
+        type: string
+      runs_on:
+        required: false
+        description: runner type
+        type: string
+        default: ubuntu-latest
+      account_id: 
+        required: true
+        description: AWS account ID
+        type: string
+      aws_region:
+        required: false
+        type: string
+        description: AWS region
+        default: us-east-1
+      subtree_repo:
+        required: true
+        type: string
+        default: FirstStreet/fs-deployment-pipeline
+      subtree_path:
+        required: true
+        type: string
+        default: deployments
+      subtree_ref:
+        required: true
+        type: string
+        default: main
+      deploy_service_account_with_policy:
+        required: false
+        default: false
+        description: deploy policy from file and add EKS service account to use the policy
+        type: boolean
+      # params for deploy_service_account_with_policy
+      eks_service_account_name:
+        required: false
+        type: string
+        description: EKS service account name
+      policy_file:
+        required: false
+        type: string
+        description: IAM policy file path
+      eks_cluster:
+        required: false
+        type: string
+        description: EKS cluster name
+      namespace:
+        required: false
+        type: string
+        description: EKS namespace
+    secrets:
+      SUBTREE_TOKEN:
+        required: true
+
+jobs:
+  Build:
+    runs-on: ${{ inputs.runs_on }}
+    env:
+      ENV: ${{ inputs.env }}
+      REGION: ${{ inputs.aws_region }}
+      
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: checkout subtree
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ inputs.subtree_repo }}
+          token: ${{ secrets.SUBTREE_TOKEN }}
+          ref: ${{ inputs.subtree_ref }}
+          path: ${{ inputs.subtree_path }}
+
+          
+      - name: configure aws credentials
+        uses: aws-actions/configure-aws-credentials@v4.0.3
+        with:
+          role-to-assume: arn:aws:iam::${{ inputs.account_id }}:role/GitHubAction-AssumeRoleWithAction
+          role-session-name: GitHub_to_AWS_via_FederatedOIDC
+          aws-region: ${{ inputs.aws_region }}
+            
+      - uses: azure/setup-helm@v3
+
+      - name: Prepare eks environment
+        if: ${{ inputs.deploy_service_account_with_policy }}
+        run: |
+            aws eks update-kubeconfig --name ${{ inputs.eks_cluster }}
+            cd ${{ inputs.subtree_path }} 
+            
+      - name: Deploy EKS service account with policy
+        if: ${{ inputs.deploy_service_account_with_policy }}
+        run: |
+            sh ./eks-role/create_role_for_eks.sh -policy ${{ inputs.policy_file }} -cluster ${{ inputs.eks_cluster }} -namespace ${{ inputs.namespace }} -service-account ${{ inputs.eks_service_account_name }}
