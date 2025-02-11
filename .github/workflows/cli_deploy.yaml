@@ -63,7 +63,7 @@ jobs:
   Build:
     runs-on: ${{ inputs.runs_on }}
     env:
-      REGION: ${{ inputs.aws_region }}
+      AWS_REGION: ${{ inputs.aws_region }}
       AWS_ACCOUNT_ID: ${{ inputs.aws_account_id }}
       SUBTREE_REPO: ${{ inputs.subtree_repo }}
       SUBTREE_PATH: ${{ inputs.subtree_path }}
@@ -92,7 +92,7 @@ jobs:
         with:
           role-to-assume: arn:aws:iam::${{ env.AWS_ACCOUNT_ID }}:role/GitHubAction-AssumeRoleWithAction
           role-session-name: GitHub_to_AWS_via_FederatedOIDC
-          aws-region: ${{ inputs.aws_region }}
+          aws-region: ${{ env.AWS_REGION }}
             
       - uses: azure/setup-helm@v3
 
@@ -105,5 +105,5 @@ jobs:
         if: ${{ inputs.deploy_service_account_with_policy }}
         run: |
             ls -la 
-            bash ./$SUBTREE_PATH/eks-role/create_role_for_eks.sh "${{ env.POLICY_FILE }}" ${{ env.EKS_CLUSTER }} ${{ env.NAMESPACE }} ${{ env.EKS_SERVICE_ACCOUNT_NAME }}
+            bash ./$SUBTREE_PATH/eks-role/create_role_for_eks.sh "${{ env.POLICY_FILE }}" ${{ env.EKS_CLUSTER }} ${{ env.NAMESPACE }} ${{ env.EKS_SERVICE_ACCOUNT_NAME }} ${{ env.AWS_REGION}}
 
