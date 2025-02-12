@@ -85,6 +85,9 @@ on:
       SOURCE_EVENT_DETAIL_TYPES:
         required: false
         type: string
+      SOURCE_EVENT_BUCKET_NAME:
+        required: false
+        type: string
       BATCH_CLUSTER_TYPE:
         required: false
         type: string
@@ -121,6 +124,7 @@ jobs:
       ECR_REPO_NAME: ${{ inputs.ECR_REPO_NAME }}
       SOURCE_EVENT_BUS_NAME: ${{ inputs.SOURCE_EVENT_BUS_NAME }}
       SOURCE_EVENT_SOURCES: ${{ inputs.SOURCE_EVENT_SOURCES }}
+      SOURCE_EVENT_BUCKET_NAME: ${{ inputs.SOURCE_EVENT_BUCKET_NAME }}
       SOURCE_EVENT_DETAIL_TYPES: ${{ inputs.SOURCE_EVENT_DETAIL_TYPES }}
       EVENT_RULE_NAME: ${{ inputs.EVENT_RULE_NAME }}
       LAMBDA_FUNC_NAME: ${{ inputs.LAMBDA_FUNC_NAME }}
