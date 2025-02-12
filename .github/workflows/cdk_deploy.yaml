@@ -205,7 +205,7 @@ jobs:
           cdk deploy --require-approval never --app "go mod download && go run ./deployments/deployModels.go ./deployments/helpers.go ./deployments/deploy.go"
           cd ..
 
-      - name: Deploy Event Batch Rule
+      - name: Deploy Batch with Event Bridge Rule
         if: ${{ inputs.deploy_event_bridge_batch }}
         run: |
           export COMPONENT=eventbridgebatch
