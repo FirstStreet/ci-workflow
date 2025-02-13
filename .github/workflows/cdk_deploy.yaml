@@ -35,6 +35,10 @@ on:
         required: false
         default: false
         type: boolean
+      deploy_event_bridge_batch:
+        required: false
+        default: false
+        type: boolean
       deploy_lambda_event_rule:
         required: false
         default: false
@@ -81,6 +85,9 @@ on:
       SOURCE_EVENT_DETAIL_TYPES:
         required: false
         type: string
+      SOURCE_EVENT_BUCKET_NAME:
+        required: false
+        type: string
       BATCH_CLUSTER_TYPE:
         required: false
         type: string
@@ -91,6 +98,9 @@ on:
         required: false
         type: string
       BATCH_SECURITY_GROUP_IDS:
+        required: false
+        type: string
+      BATCH_JOB_COMMAND:
         required: false
         type: string
       BATCH_DISK_STORAGE:
@@ -114,6 +124,7 @@ jobs:
       ECR_REPO_NAME: ${{ inputs.ECR_REPO_NAME }}
       SOURCE_EVENT_BUS_NAME: ${{ inputs.SOURCE_EVENT_BUS_NAME }}
       SOURCE_EVENT_SOURCES: ${{ inputs.SOURCE_EVENT_SOURCES }}
+      SOURCE_EVENT_BUCKET_NAME: ${{ inputs.SOURCE_EVENT_BUCKET_NAME }}
       SOURCE_EVENT_DETAIL_TYPES: ${{ inputs.SOURCE_EVENT_DETAIL_TYPES }}
       EVENT_RULE_NAME: ${{ inputs.EVENT_RULE_NAME }}
       LAMBDA_FUNC_NAME: ${{ inputs.LAMBDA_FUNC_NAME }}
@@ -126,6 +137,7 @@ jobs:
       BATCH_MAX_VCPUS: ${{ inputs.BATCH_MAX_VCPUS }}
       BATCH_SUBNET_IDS: ${{ inputs.BATCH_SUBNET_IDS }}
       BATCH_SECURITY_GROUP_IDS: ${{ inputs.BATCH_SECURITY_GROUP_IDS }}
+      BATCH_JOB_COMMAND: ${{ inputs.BATCH_JOB_COMMAND }}
       BATCH_DISK_STORAGE: ${{ inputs.BATCH_DISK_STORAGE }}
       BATCH_RUNTIME_CPU: ${{ inputs.BATCH_RUNTIME_CPU }}
       
@@ -200,6 +212,14 @@ jobs:
         run: |
           export COMPONENT=batch
           cd ${{ inputs.subtree_path }} 
+          cdk deploy --require-approval never --app "go mod download && go run ./deployments/deployModels.go ./deployments/helpers.go ./deployments/deploy.go"
+          cd ..
+
+      - name: Deploy Batch with Event Bridge Rule
+        if: ${{ inputs.deploy_event_bridge_batch }}
+        run: |
+          export COMPONENT=eventbridgebatch
+          cd ${{ inputs.subtree_path }}
           cdk deploy --require-approval never --app "go mod download && go run ./deployments/deployModels.go ./deployments/helpers.go ./deployments/deploy.go"
           cd ..
 
