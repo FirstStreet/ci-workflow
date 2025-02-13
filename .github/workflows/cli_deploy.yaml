@@ -1,4 +1,4 @@
-name: CDK Deploy
+name: CLI Deploy
 
 on:
   workflow_call:
