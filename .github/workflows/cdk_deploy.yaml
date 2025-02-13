@@ -39,6 +39,10 @@ on:
         required: false
         default: false
         type: boolean
+      deploy_eks_service_account:
+        required: false
+        default: false
+        type: boolean
       go_build_arch:
         required: false
         default: amd64
@@ -99,6 +103,17 @@ on:
       BATCH_RUNTIME_CPU:
         required: false
         type: string
+
+      EKS_SA_POLICY_FILE:
+        required: false
+        type: string
+      CLUSTER_NAME:
+        required: false
+        type: string
+      SERVICE_ACCOUNT_NAME:
+        required: false
+        type: string
+
     secrets:
       SUBTREE_TOKEN:
         required: true
@@ -128,6 +143,10 @@ jobs:
       BATCH_SECURITY_GROUP_IDS: ${{ inputs.BATCH_SECURITY_GROUP_IDS }}
       BATCH_DISK_STORAGE: ${{ inputs.BATCH_DISK_STORAGE }}
       BATCH_RUNTIME_CPU: ${{ inputs.BATCH_RUNTIME_CPU }}
+
+      EKS_SA_POLICY_FILE: ${{ inputs.EKS_SA_POLICY_FILE }}
+      CLUSTER_NAME: ${{ inputs.CLUSTER_NAME }}
+      SERVICE_ACCOUNT_NAME: ${{ inputs.SERVICE_ACCOUNT_NAME }}
       
     steps:
       - name: Checkout code
@@ -204,6 +223,14 @@ jobs:
           echo -e "#!/bin/sh\n./${{ inputs.LAMBDA_FUNC_NAME }}" > ./${{ inputs.LAMBDA_ASSET_PATH }}/bootstrap
           chmod +x ./${{ inputs.LAMBDA_ASSET_PATH }}/bootstrap
           export COMPONENT=eventrulesimplelambda
+          cd ${{ inputs.subtree_path }} 
+          cdk deploy --require-approval never --app "go mod download && go run ./deployments/deployModels.go ./deployments/helpers.go ./deployments/deploy.go"
+          cd ..
+      
+      - name: Deploy EKS service account with policy
+        if: ${{ inputs.deploy_eks_service_account }}
+        run: |
+          export COMPONENT=eks_sa
           cd ${{ inputs.subtree_path }} 
           cdk deploy --require-approval never --app "go mod download && go run ./deployments/deployModels.go ./deployments/helpers.go ./deployments/deploy.go"
           cd ..
