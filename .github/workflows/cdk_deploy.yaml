@@ -113,6 +113,9 @@ on:
       SERVICE_ACCOUNT_NAME:
         required: false
         type: string
+      NAMESPACE:
+        required: false
+        type: string
 
     secrets:
       SUBTREE_TOKEN:
@@ -147,6 +150,7 @@ jobs:
       EKS_SA_POLICY_FILE: ${{ inputs.EKS_SA_POLICY_FILE }}
       CLUSTER_NAME: ${{ inputs.CLUSTER_NAME }}
       SERVICE_ACCOUNT_NAME: ${{ inputs.SERVICE_ACCOUNT_NAME }}
+      NAMESPACE: ${{ inputs.NAMESPACE }}
       
     steps:
       - name: Checkout code
