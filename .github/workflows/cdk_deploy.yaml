@@ -70,6 +70,9 @@ on:
       LAMBDA_HANDLER_NAME:
         required: false
         type: string
+      LAMBDA_TIMEOUT_IN_SECONDS:
+        required: false
+        type: string
       EVENT_RULE_NAME:
         required: false
         type: string
@@ -131,6 +134,7 @@ jobs:
       LAMBDA_ASSET_PATH: ${{ inputs.LAMBDA_ASSET_PATH }}
       LAMBDA_HANDLER_NAME: ${{ inputs.LAMBDA_HANDLER_NAME }}
       LAMBDA_RUNTIME_ARCH: ${{ inputs.LAMBDA_RUNTIME_ARCH}}
+      LAMBDA_TIMEOUT_IN_SECONDS: ${{ inputs.LAMBDA_TIMEOUT_IN_SECONDS }}
       ACCOUNT_ID: ${{ inputs.ACCOUNT_ID }}
       REGION: ${{ inputs.aws_region }}
       BATCH_CLUSTER_TYPE: ${{ inputs.BATCH_CLUSTER_TYPE }}
