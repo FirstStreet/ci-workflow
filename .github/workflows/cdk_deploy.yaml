@@ -43,6 +43,10 @@ on:
         required: false
         default: false
         type: boolean
+      deploy_sqs_lambda_trigger:
+          required: false
+          default: false
+          type: boolean
       go_build_arch:
         required: false
         default: amd64
@@ -115,6 +119,9 @@ on:
       BATCH_RUNTIME_CPU:
         required: false
         type: string
+      SQS_QUEUE_NAME:
+        required: false
+        type: string
     secrets:
       SUBTREE_TOKEN:
         required: true
@@ -148,6 +155,7 @@ jobs:
       BATCH_JOB_COMMAND: ${{ inputs.BATCH_JOB_COMMAND }}
       BATCH_DISK_STORAGE: ${{ inputs.BATCH_DISK_STORAGE }}
       BATCH_RUNTIME_CPU: ${{ inputs.BATCH_RUNTIME_CPU }}
+      SQS_QUEUE_NAME: ${{ inputs.SQS_QUEUE_NAME }}
       
     steps:
       - name: Checkout code
@@ -238,6 +246,17 @@ jobs:
           echo -e "#!/bin/sh\n./${{ inputs.LAMBDA_FUNC_NAME }}" > ./${{ inputs.LAMBDA_ASSET_PATH }}/bootstrap
           chmod +x ./${{ inputs.LAMBDA_ASSET_PATH }}/bootstrap
           export COMPONENT=eventrulesimplelambda
+          cd ${{ inputs.subtree_path }} 
+          cdk deploy --require-approval never --app "go mod download && go run ./deployments/deployModels.go ./deployments/helpers.go ./deployments/deploy.go"
+          cd ..
+
+      - name: Deploy SQS Lambda Trigger
+        if: ${{ inputs.deploy_sqs_lambda_trigger }}
+        run: |
+          CGO_ENABLED=0 GOARCH=${{ inputs.go_build_arch }} GOOS=linux go build -a -ldflags '-s -w' -o ./${{ inputs.LAMBDA_ASSET_PATH }}/${{ inputs.LAMBDA_FUNC_NAME }} ./${{ inputs.LAMBDA_ASSET_PATH }}
+          echo -e "#!/bin/sh\n./${{ inputs.LAMBDA_FUNC_NAME }}" > ./${{ inputs.LAMBDA_ASSET_PATH }}/bootstrap
+          chmod +x ./${{ inputs.LAMBDA_ASSET_PATH }}/bootstrap
+          export COMPONENT=sqssimplelambda
           cd ${{ inputs.subtree_path }} 
           cdk deploy --require-approval never --app "go mod download && go run ./deployments/deployModels.go ./deployments/helpers.go ./deployments/deploy.go"
           cd ..
