@@ -43,6 +43,10 @@ on:
         required: false
         default: false
         type: boolean
+      deploy_s3:
+        required: false
+        default: false
+        type: boolean
       go_build_arch:
         required: false
         default: amd64
@@ -116,9 +120,18 @@ on:
         required: false
         type: string
       BATCH_DOCKERFILE_PATH:
+        description: "Relative path to Dockerfile against root, default is the Dockerfile under root, other ex: jobs/stats_refresh/Dockerfile"
         required: false
         type: string
         default: Dockerfile
+      S3_BUCKET_NAME_PREFIX:
+        description: "Prefix of the S3 bucket, env or additional static values will be appended to this prefix"
+        required: false
+        type: string
+      S3_TTL_SPEC:
+        description: "Lifecycle for objects in the format of prefix:ttl_days, separated by spaces. ex: 'upload:7 result:30' means files under upload/ will expire in 7 days and files under result/ will expire in 30 days"
+        required: false
+        type: string
     secrets:
       SUBTREE_TOKEN:
         required: true
@@ -153,8 +166,9 @@ jobs:
       BATCH_DISK_STORAGE: ${{ inputs.BATCH_DISK_STORAGE }}
       BATCH_RUNTIME_CPU: ${{ inputs.BATCH_RUNTIME_CPU }}
       BATCH_DOCKERFILE_PATH: ${{ inputs.BATCH_DOCKERFILE_PATH }}
+      S3_BUCKET_NAME_PREFIX: ${{ inputs.S3_BUCKET_NAME_PREFIX }}
+      S3_TTL_SPEC: ${{ inputs.S3_TTL_SPEC }}
 
-      
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -244,6 +258,14 @@ jobs:
           echo -e "#!/bin/sh\n./${{ inputs.LAMBDA_FUNC_NAME }}" > ./${{ inputs.LAMBDA_ASSET_PATH }}/bootstrap
           chmod +x ./${{ inputs.LAMBDA_ASSET_PATH }}/bootstrap
           export COMPONENT=eventrulesimplelambda
+          cd ${{ inputs.subtree_path }} 
+          cdk deploy --require-approval never --app "go mod download && go run ./deployments/deployModels.go ./deployments/helpers.go ./deployments/deploy.go"
+          cd ..
+
+      - name: Deploy S3
+        if: ${{ inputs.deploy_s3 }}
+        run: |
+          export COMPONENT=s3
           cd ${{ inputs.subtree_path }} 
           cdk deploy --require-approval never --app "go mod download && go run ./deployments/deployModels.go ./deployments/helpers.go ./deployments/deploy.go"
           cd ..
