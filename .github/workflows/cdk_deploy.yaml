@@ -115,6 +115,10 @@ on:
       BATCH_RUNTIME_CPU:
         required: false
         type: string
+      BATCH_DOCKERFILE_PATH:
+        required: false
+        type: string
+        default: Dockerfile
     secrets:
       SUBTREE_TOKEN:
         required: true
@@ -148,6 +152,8 @@ jobs:
       BATCH_JOB_COMMAND: ${{ inputs.BATCH_JOB_COMMAND }}
       BATCH_DISK_STORAGE: ${{ inputs.BATCH_DISK_STORAGE }}
       BATCH_RUNTIME_CPU: ${{ inputs.BATCH_RUNTIME_CPU }}
+      BATCH_DOCKERFILE_PATH: ${{ inputs.BATCH_DOCKERFILE_PATH }}
+
       
     steps:
       - name: Checkout code
