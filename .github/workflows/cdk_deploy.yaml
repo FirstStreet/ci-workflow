@@ -120,13 +120,16 @@ on:
         required: false
         type: string
       BATCH_DOCKERFILE_PATH:
+        description: "Relative path to Dockerfile against root, default is the Dockerfile under root, other ex: jobs/stats_refresh/Dockerfile"
         required: false
         type: string
         default: Dockerfile
       S3_BUCKET_NAME_PREFIX:
+        description: "Prefix of the S3 bucket, env or additional static values will be appended to this prefix"
         required: false
         type: string
-      S3_TTL_IN_DAYS:
+      S3_TTL_SPEC:
+        description: "Lifecycle for objects in the format of prefix:ttl_days, separated by spaces. ex: 'upload:7 result:30' means files under upload/ will expire in 7 days and files under result/ will expire in 30 days"
         required: false
         type: string
     secrets:
@@ -164,7 +167,7 @@ jobs:
       BATCH_RUNTIME_CPU: ${{ inputs.BATCH_RUNTIME_CPU }}
       BATCH_DOCKERFILE_PATH: ${{ inputs.BATCH_DOCKERFILE_PATH }}
       S3_BUCKET_NAME_PREFIX: ${{ inputs.S3_BUCKET_NAME_PREFIX }}
-      S3_TTL_IN_DAYS: ${{ inputs.S3_TTL_IN_DAYS }}
+      S3_TTL_SPEC: ${{ inputs.S3_TTL_SPEC }}
 
     steps:
       - name: Checkout code
