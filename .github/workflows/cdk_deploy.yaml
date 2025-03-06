@@ -132,6 +132,10 @@ on:
         description: "Lifecycle for objects in the format of prefix:ttl_days, separated by spaces. ex: 'upload:7 result:30' means files under upload/ will expire in 7 days and files under result/ will expire in 30 days"
         required: false
         type: string
+      S3_EVENTBRIDGE_ENABLED:
+        description: "Set to true to send notifications to Amazon EventBridge. Default: false"
+        required: false
+        type: boolean
     secrets:
       SUBTREE_TOKEN:
         required: true
