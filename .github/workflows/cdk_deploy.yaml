@@ -172,6 +172,7 @@ jobs:
       BATCH_DOCKERFILE_PATH: ${{ inputs.BATCH_DOCKERFILE_PATH }}
       S3_BUCKET_NAME_PREFIX: ${{ inputs.S3_BUCKET_NAME_PREFIX }}
       S3_TTL_SPEC: ${{ inputs.S3_TTL_SPEC }}
+      S3_EVENTBRIDGE_ENABLED: ${{ inputs.S3_EVENTBRIDGE_ENABLED }}
 
     steps:
       - name: Checkout code
