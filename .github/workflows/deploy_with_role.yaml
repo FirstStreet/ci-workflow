@@ -1,7 +1,10 @@
-name: Deploy Targeted
+name: Deploy With AWS role
 on:
   workflow_call:
     inputs:
+      aws_account_id:
+        required: true
+        type: string
       appname:
         required: true
         type: string
@@ -30,20 +33,21 @@ on:
         default: potato-pie
         required: false
         type: string
-    secrets:
-      AWS_ACCESS_KEY_ID:
-        required: true
-      AWS_SECRET_ACCESS_KEY:
-        required: true
 
 env:
   APP_NAME: ${{ inputs.appname }}
+  AWS_ACCOUNT_ID: ${{ inputs.aws_account_id }}
   HELM_NAME: ${{ inputs.helm_name }}
   HELM_TIMEOUT: ${{ inputs.helm_timeout }}
   NAMESPACE: ${{ inputs.namespace }}
   HELM_CONFIG: ${{ inputs.helm_config }}
   SIMPLE_DEPLOY: ${{ inputs.simple_deploy }}
   USE_SSM: ${{ inputs.use_ssm }}
+  EKS_CLUSTER: ${{ inputs.eks_cluster }}
+
+permissions:
+  id-token: write
+  contents: read
 
 jobs:
   Deploy:
@@ -70,11 +74,15 @@ jobs:
         with:
           version: "v3.6.0" # default is latest stable
 
+      - name: Set outputs
+        id: vars
+        run: echo "sha_short=$(git rev-parse --short=4 HEAD)" >> $GITHUB_OUTPUT
+        
       - name: AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v4.0.3
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          role-to-assume: "arn:aws:iam::${{env.AWS_ACCOUNT_ID}}:role/GitHubAction-AssumeRoleWithAction"
+          role-session-name: GithubActions-${{ github.event.repository.name }}-${{ inputs.helm_name }}-${{ inputs.helm_config }}-${{ steps.vars.outputs.sha_short }}
           aws-region: us-east-1
 
       - name: Deploying Namespace
@@ -85,6 +93,9 @@ jobs:
       - name: Deploy
         run: |
           aws eks update-kubeconfig --name ${{ inputs.eks_cluster }}
+          
+          kubectl get svc
+          
           if [[ $USE_SSM == true ]]; then
             helm plugin remove ssm || true
             helm plugin add https://github.com/seripap/helm-ssm || true
@@ -94,6 +105,7 @@ jobs:
           sed -i "s/^appVersion:.*$/appVersion: \"$(git describe)\"/" _k/$APP_NAME/Chart.yaml
 
           if [[ $SIMPLE_DEPLOY == true ]]; then
+            echo "Starting upgrade"
             helm upgrade $HELM_NAME _k/$APP_NAME --install --namespace $NAMESPACE --set app.image.tag=sha-$GITHUB_SHA-$NAMESPACE -f $VALUES --wait --timeout $HELM_TIMEOUT --debug
           else
             helm upgrade $HELM_NAME _k/$APP_NAME --install --namespace $NAMESPACE --set app.image.tag=sha-$GITHUB_SHA-$NAMESPACE,app.config=$CONF_ENV,volume.path=$CONF_ENV.conf -f $VALUES --wait --timeout $HELM_TIMEOUT --debug

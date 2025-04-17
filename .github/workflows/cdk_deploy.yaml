@@ -1,0 +1,276 @@
+name: CDK Deploy
+
+on:
+  workflow_call:
+    inputs:
+      runs_on:
+        required: false
+        type: string
+        default: ubuntu-latest
+      aws_region:
+        required: false
+        type: string
+        default: us-east-1
+      subtree_repo:
+        required: false
+        type: string
+        default: FirstStreet/fs-deployment-pipeline
+      subtree_path:
+        required: false
+        type: string
+        default: deployments
+      subtree_ref:
+        required: false
+        type: string
+        default: main
+      deploy_ecr:
+        required: false
+        default: false
+        type: boolean
+      deploy_docker_image:
+        required: false
+        default: false
+        type: boolean
+      deploy_batch:
+        required: false
+        default: false
+        type: boolean
+      deploy_event_bridge_batch:
+        required: false
+        default: false
+        type: boolean
+      deploy_lambda_event_rule:
+        required: false
+        default: false
+        type: boolean
+      deploy_s3:
+        required: false
+        default: false
+        type: boolean
+      go_build_arch:
+        required: false
+        default: amd64
+        type: string
+
+      # Deployment parameters for CDK
+      ENV:
+        required: true
+        type: string
+      STACK_ID_PREFIX:
+        required: true
+        type: string
+      ACCOUNT_ID:
+        required: true
+        type: string
+      ECR_REPO_NAME:
+        required: false
+        type: string
+      LAMBDA_FUNC_NAME:
+        required: false
+        type: string
+      LAMBDA_ASSET_PATH:
+        required: false
+        type: string
+      LAMBDA_HANDLER_NAME:
+        required: false
+        type: string
+      LAMBDA_TIMEOUT_IN_SECONDS:
+        required: false
+        type: string
+      LAMBDA_ENV_VARS:
+        required: false
+        type: string
+      EVENT_RULE_NAME:
+        required: false
+        type: string
+      LAMBDA_RUNTIME_ARCH:
+        required: false
+        type: string
+      SOURCE_EVENT_BUS_NAME:
+        required: false
+        type: string
+      SOURCE_EVENT_SOURCES:
+        required: false
+        type: string
+      SOURCE_EVENT_DETAIL_TYPES:
+        required: false
+        type: string
+      SOURCE_EVENT_BUCKET_NAME:
+        required: false
+        type: string
+      BATCH_CLUSTER_TYPE:
+        required: false
+        type: string
+      BATCH_MAX_VCPUS:
+        required: false
+        type: string
+      BATCH_SUBNET_IDS:
+        required: false
+        type: string
+      BATCH_SECURITY_GROUP_IDS:
+        required: false
+        type: string
+      BATCH_JOB_COMMAND:
+        required: false
+        type: string
+      BATCH_DISK_STORAGE:
+        required: false
+        type: string
+      BATCH_RUNTIME_CPU:
+        required: false
+        type: string
+      BATCH_DOCKERFILE_PATH:
+        description: "Relative path to Dockerfile against root, default is the Dockerfile under root, other ex: jobs/stats_refresh/Dockerfile"
+        required: false
+        type: string
+        default: Dockerfile
+      S3_BUCKET_NAME_PREFIX:
+        description: "Prefix of the S3 bucket, env or additional static values will be appended to this prefix"
+        required: false
+        type: string
+      S3_TTL_SPEC:
+        description: "Lifecycle for objects in the format of prefix:ttl_days, separated by spaces. ex: 'upload:7 result:30' means files under upload/ will expire in 7 days and files under result/ will expire in 30 days"
+        required: false
+        type: string
+      S3_EVENTBRIDGE_ENABLED:
+        description: "Set to true to send notifications to Amazon EventBridge. Default: false"
+        required: false
+        type: boolean
+    secrets:
+      SUBTREE_TOKEN:
+        required: true
+      GHCR_TOKEN:
+        required: false
+
+jobs:
+  Build:
+    runs-on: ${{ inputs.runs_on }}
+    env:
+      ENV: ${{ inputs.ENV }}
+      STACK_ID_PREFIX: ${{ inputs.STACK_ID_PREFIX }}
+      ECR_REPO_NAME: ${{ inputs.ECR_REPO_NAME }}
+      SOURCE_EVENT_BUS_NAME: ${{ inputs.SOURCE_EVENT_BUS_NAME }}
+      SOURCE_EVENT_SOURCES: ${{ inputs.SOURCE_EVENT_SOURCES }}
+      SOURCE_EVENT_BUCKET_NAME: ${{ inputs.SOURCE_EVENT_BUCKET_NAME }}
+      SOURCE_EVENT_DETAIL_TYPES: ${{ inputs.SOURCE_EVENT_DETAIL_TYPES }}
+      EVENT_RULE_NAME: ${{ inputs.EVENT_RULE_NAME }}
+      LAMBDA_FUNC_NAME: ${{ inputs.LAMBDA_FUNC_NAME }}
+      LAMBDA_ASSET_PATH: ${{ inputs.LAMBDA_ASSET_PATH }}
+      LAMBDA_HANDLER_NAME: ${{ inputs.LAMBDA_HANDLER_NAME }}
+      LAMBDA_RUNTIME_ARCH: ${{ inputs.LAMBDA_RUNTIME_ARCH}}
+      LAMBDA_TIMEOUT_IN_SECONDS: ${{ inputs.LAMBDA_TIMEOUT_IN_SECONDS }}
+      LAMBDA_ENV_VARS: ${{ inputs.LAMBDA_ENV_VARS }}
+      ACCOUNT_ID: ${{ inputs.ACCOUNT_ID }}
+      REGION: ${{ inputs.aws_region }}
+      BATCH_CLUSTER_TYPE: ${{ inputs.BATCH_CLUSTER_TYPE }}
+      BATCH_MAX_VCPUS: ${{ inputs.BATCH_MAX_VCPUS }}
+      BATCH_SUBNET_IDS: ${{ inputs.BATCH_SUBNET_IDS }}
+      BATCH_SECURITY_GROUP_IDS: ${{ inputs.BATCH_SECURITY_GROUP_IDS }}
+      BATCH_JOB_COMMAND: ${{ inputs.BATCH_JOB_COMMAND }}
+      BATCH_DISK_STORAGE: ${{ inputs.BATCH_DISK_STORAGE }}
+      BATCH_RUNTIME_CPU: ${{ inputs.BATCH_RUNTIME_CPU }}
+      BATCH_DOCKERFILE_PATH: ${{ inputs.BATCH_DOCKERFILE_PATH }}
+      S3_BUCKET_NAME_PREFIX: ${{ inputs.S3_BUCKET_NAME_PREFIX }}
+      S3_TTL_SPEC: ${{ inputs.S3_TTL_SPEC }}
+      S3_EVENTBRIDGE_ENABLED: ${{ inputs.S3_EVENTBRIDGE_ENABLED }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: checkout subtree
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ inputs.subtree_repo }}
+          token: ${{ secrets.SUBTREE_TOKEN }}
+          ref: ${{ inputs.subtree_ref }}
+          path: ${{ inputs.subtree_path }}
+
+      - name: Setup Env
+        uses: actions/setup-go@v4
+        with:
+          go-version: 1.23
+
+      - name: configure aws credentials
+        uses: aws-actions/configure-aws-credentials@v4.0.3
+        with:
+          role-to-assume: arn:aws:iam::${{ inputs.ACCOUNT_ID }}:role/GitHubAction-AssumeRoleWithAction
+          role-session-name: GitHub_to_AWS_via_FederatedOIDC
+          aws-region: ${{ inputs.aws_region }}
+
+      - name: go mods
+        run: |
+          cd ${{ inputs.subtree_path }} 
+          go mod tidy      
+          go mod vendor
+          cd ..  
+
+      - name: Setup node
+        if: ${{ inputs.runs_on == 'aws' }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+
+      - name: Install deployment dependencies
+        run: npm install -g aws-cdk 
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3.8.0
+
+      - name: Log into ghrc registry
+        uses: docker/login-action@v3.3.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GHCR_TOKEN }}
+
+      - name: Deploy ECR
+        if: ${{ inputs.deploy_ecr }}
+        run: |
+          export COMPONENT=ecr
+          cd ${{ inputs.subtree_path }} 
+          cdk deploy --require-approval never --app "go mod download && go run ./deployments/deployModels.go ./deployments/helpers.go ./deployments/deploy.go"
+          cd ..
+      
+      - name: Deploy Docker
+        if: ${{ inputs.deploy_docker_image }}
+        run: |
+          export COMPONENT=docker
+          cd ${{ inputs.subtree_path }} 
+          cdk deploy --require-approval never --app "go mod download && go run ./deployments/deployModels.go ./deployments/helpers.go ./deployments/deploy.go"
+          cd ..
+      
+      - name: Deploy Batch
+        if: ${{ inputs.deploy_batch }}
+        run: |
+          export COMPONENT=batch
+          cd ${{ inputs.subtree_path }} 
+          cdk deploy --require-approval never --app "go mod download && go run ./deployments/deployModels.go ./deployments/helpers.go ./deployments/deploy.go"
+          cd ..
+
+      - name: Deploy Batch with Event Bridge Rule
+        if: ${{ inputs.deploy_event_bridge_batch }}
+        run: |
+          export COMPONENT=eventbridgebatch
+          cd ${{ inputs.subtree_path }}
+          cdk deploy --require-approval never --app "go mod download && go run ./deployments/deployModels.go ./deployments/helpers.go ./deployments/deploy.go"
+          cd ..
+
+      - name: Deploy Event Lambda Rule
+        if: ${{ inputs.deploy_lambda_event_rule }}
+        run: |
+          CGO_ENABLED=0 GOARCH=${{ inputs.go_build_arch }} GOOS=linux go build -a -ldflags '-s -w' -o ./${{ inputs.LAMBDA_ASSET_PATH }}/${{ inputs.LAMBDA_FUNC_NAME }} ./${{ inputs.LAMBDA_ASSET_PATH }}
+          echo -e "#!/bin/sh\n./${{ inputs.LAMBDA_FUNC_NAME }}" > ./${{ inputs.LAMBDA_ASSET_PATH }}/bootstrap
+          chmod +x ./${{ inputs.LAMBDA_ASSET_PATH }}/bootstrap
+          export COMPONENT=eventrulesimplelambda
+          cd ${{ inputs.subtree_path }} 
+          cdk deploy --require-approval never --app "go mod download && go run ./deployments/deployModels.go ./deployments/helpers.go ./deployments/deploy.go"
+          cd ..
+
+      - name: Deploy S3
+        if: ${{ inputs.deploy_s3 }}
+        run: |
+          export COMPONENT=s3
+          cd ${{ inputs.subtree_path }} 
+          cdk deploy --require-approval never --app "go mod download && go run ./deployments/deployModels.go ./deployments/helpers.go ./deployments/deploy.go"
+          cd ..

@@ -2,6 +2,9 @@ name: Build and Deploy
 on:
   workflow_call:
     inputs:
+      aws_account_id:
+        required: true
+        type: string
       appname:
         required: true
         type: string
@@ -65,10 +68,6 @@ on:
         required: false
         type: boolean
     secrets:
-      AWS_ACCESS_KEY_ID:
-        required: true
-      AWS_SECRET_ACCESS_KEY:
-        required: true
       OP_SERVICE_ACCOUNT_TOKEN:
         required: false
       SENTRY_AUTH_TOKEN:
@@ -91,7 +90,7 @@ env:
 
 jobs:
   Build:
-    uses: ./.github/workflows/build_targeted.yaml
+    uses: ./.github/workflows/build_with_role.yaml
     with:
       namespace: ${{ inputs.namespace }}
       dockerfile: ${{ inputs.dockerfile }}
@@ -103,14 +102,12 @@ jobs:
       var_replace_include: ${{ inputs.var_replace_include }}
       force_docker_push: ${{ inputs.force_docker_push }}
     secrets:
-      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
       SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
 
   Deploy:
     needs: [Build]
-    uses: ./.github/workflows/deploy_targeted.yaml
+    uses: ./.github/workflows/deploy_with_role.yaml
     with:
       appname: ${{ inputs.appname }}
       helm_name: ${{ inputs.helm_name }}
@@ -120,7 +117,4 @@ jobs:
       use_ssm: ${{ inputs.use_ssm }}
       simple_deploy: ${{ inputs.simple_deploy }}
       eks_cluster: ${{ inputs.eks_cluster }}
-
-    secrets:
-      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      aws_account_id: ${{ inputs.aws_account_id }}
