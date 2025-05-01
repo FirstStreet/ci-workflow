@@ -134,6 +134,7 @@ jobs:
             # Move the temp file back to the original
             mv "$TEMP_POLICY_FILE" "${{ env.POLICY_FILE }}"
             cat "${{ env.POLICY_FILE }}"
+            echo "\n"
             echo "Token replacement completed"
           else
             echo "Token replacement skipped - files not found"
