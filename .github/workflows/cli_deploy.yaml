@@ -8,7 +8,7 @@ on:
         description: runner type
         type: string
         default: ubuntu-latest
-      aws_account_id: 
+      aws_account_id:
         required: true
         description: AWS account ID
         type: string
@@ -43,6 +43,10 @@ on:
         required: false
         type: string
         description: IAM policy file path
+      policy_tokens_file:
+        required: false
+        type: string
+        description: File that contains replacement values for any tokens in the policy file
       eks_cluster:
         required: false
         type: string
@@ -70,10 +74,11 @@ jobs:
       SUBTREE_REF: ${{ inputs.subtree_ref }}
       EKS_SERVICE_ACCOUNT_NAME: ${{ inputs.eks_service_account_name }}
       POLICY_FILE: ${{ inputs.policy_file }}
+      POLICY_TOKENS_FILE: ${{ inputs.policy_tokens_file }}
       EKS_CLUSTER: ${{ inputs.eks_cluster }}
       NAMESPACE: ${{ inputs.namespace }}
       DEPLOY_SERVICE_ACCOUNT_WITH_POLICY: ${{ inputs.deploy_service_account_with_policy}}
-      
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -86,23 +91,56 @@ jobs:
           ref: ${{ inputs.subtree_ref }}
           path: ${{ inputs.subtree_path }}
 
-          
       - name: configure aws credentials
         uses: aws-actions/configure-aws-credentials@v4.0.3
         with:
           role-to-assume: arn:aws:iam::${{ env.AWS_ACCOUNT_ID }}:role/GitHubAction-AssumeRoleWithAction
           role-session-name: GitHub_to_AWS_via_FederatedOIDC
           aws-region: ${{ env.AWS_REGION }}
-            
+
       - uses: azure/setup-helm@v3
 
       - name: Prepare eks environment
         if: ${{ inputs.deploy_service_account_with_policy }}
         run: |
-            aws eks update-kubeconfig --name ${{ inputs.eks_cluster }}
+          aws eks update-kubeconfig --name ${{ inputs.eks_cluster }}
+
+      - name: Replace config tokens
+        run: |
+          if [[ -f "${{ env.POLICY_TOKENS_FILE }}" ]] && [[ -f "${{ env.POLICY_FILE }}" ]]; then
+            echo "Replacing tokens in ${{ env.POLICY_FILE }}"
+            # Create a temp file for the policy with tokens replaced
+            TEMP_POLICY_FILE=$(mktemp)
+            cat "${{ env.POLICY_FILE }}" > "$TEMP_POLICY_FILE"
             
+            # Loop through each line in the tokens file
+            while IFS= read -r line || [[ -n "$line" ]]; do
+              # Skip empty lines and comments
+              if [[ -z "$line" ]] || [[ "$line" =~ ^# ]]; then
+                continue
+              fi
+              
+              # Extract key and value from each line
+              if [[ "$line" =~ ^([^=]+)=(.*)$ ]]; then
+                TOKEN_KEY="${BASH_REMATCH[1]}"
+                TOKEN_VALUE="${BASH_REMATCH[2]}"
+                
+                echo "Replacing token: $TOKEN_KEY"
+                # Replace token in the temp file
+                sed -i.bak "s|$TOKEN_KEY|$TOKEN_VALUE|g" "$TEMP_POLICY_FILE"
+              fi
+            done < "${{ env.POLICY_TOKENS_FILE }}"
+            
+            # Move the temp file back to the original
+            mv "$TEMP_POLICY_FILE" "${{ env.POLICY_FILE }}"
+            cat "${{ env.POLICY_FILE }}"
+            echo "\n"
+            echo "Token replacement completed"
+          else
+            echo "Token replacement skipped - files not found"
+          fi
+
       - name: Deploy EKS service account with policy
         if: ${{ inputs.deploy_service_account_with_policy }}
         run: |
-            bash ./$SUBTREE_PATH/eks-role/create_role_for_eks.sh "${{ env.POLICY_FILE }}" ${{ env.EKS_CLUSTER }} ${{ env.NAMESPACE }} ${{ env.EKS_SERVICE_ACCOUNT_NAME }} ${{ env.AWS_REGION}}
-
+          bash ./$SUBTREE_PATH/eks-role/create_role_for_eks.sh "${{ env.POLICY_FILE }}" ${{ env.EKS_CLUSTER }} ${{ env.NAMESPACE }} ${{ env.EKS_SERVICE_ACCOUNT_NAME }} ${{ env.AWS_REGION}}
