@@ -127,9 +127,6 @@ on:
       BATCH_JOB_COMMAND:
         required: false
         type: string
-      BATCH_JOB_DEF_SECRET:
-        required: false
-        type: string
       BATCH_DISK_STORAGE:
         required: false
         type: string
@@ -156,6 +153,8 @@ on:
       SUBTREE_TOKEN:
         required: true
       GHCR_TOKEN:
+        required: false
+      BATCH_JOB_DEF_SECRET:
         required: false
 
 jobs:
@@ -186,7 +185,7 @@ jobs:
       BATCH_SUBNET_IDS: ${{ inputs.BATCH_SUBNET_IDS }}
       BATCH_SECURITY_GROUP_IDS: ${{ inputs.BATCH_SECURITY_GROUP_IDS }}
       BATCH_JOB_COMMAND: ${{ inputs.BATCH_JOB_COMMAND }}
-      BATCH_JOB_DEF_SECRET: ${{ inputs.BATCH_JOB_DEF_SECRET }}
+      BATCH_JOB_DEF_SECRET: ${{ secrets.BATCH_JOB_DEF_SECRET }}
       BATCH_DISK_STORAGE: ${{ inputs.BATCH_DISK_STORAGE }}
       BATCH_RUNTIME_CPU: ${{ inputs.BATCH_RUNTIME_CPU }}
       BATCH_DOCKERFILE_PATH: ${{ inputs.BATCH_DOCKERFILE_PATH }}
