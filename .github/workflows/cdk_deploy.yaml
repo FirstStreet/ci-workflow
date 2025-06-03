@@ -79,7 +79,6 @@ on:
         description: "Relative path to Dockerfile against root, default is the Dockerfile under root, other ex: jobs/stats_refresh/Dockerfile"
         required: false
         type: string
-        default: Dockerfile
       LAMBDA_HANDLER_NAME:
         required: false
         type: string
@@ -135,7 +134,6 @@ on:
         description: "Relative path to Dockerfile against root, default is the Dockerfile under root, other ex: jobs/stats_refresh/Dockerfile"
         required: false
         type: string
-        default: Dockerfile
       S3_BUCKET_NAME_PREFIX:
         description: "Prefix of the S3 bucket, env or additional static values will be appended to this prefix"
         required: false
