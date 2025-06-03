@@ -255,7 +255,7 @@ jobs:
           cd ..
 
       - name: Deploy Docker Lambda
-        if: ${{ input.deploy_docker_lambda }}
+        if: ${{ inputs.deploy_docker_lambda }}
         run: |
           export COMPONENT=dockerlambda
           cd ${{ inputs.subtree_path }}
