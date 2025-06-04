@@ -69,6 +69,9 @@ on:
       ECR_REPO_NAME:
         required: false
         type: string
+      DOCKER_IMAGE_TAG:
+        required: false
+        type: string
       LAMBDA_FUNC_NAME:
         required: false
         type: string
@@ -159,6 +162,7 @@ jobs:
       ENV: ${{ inputs.ENV }}
       STACK_ID_PREFIX: ${{ inputs.STACK_ID_PREFIX }}
       ECR_REPO_NAME: ${{ inputs.ECR_REPO_NAME }}
+      DOCKER_IMAGE_TAG: ${{ inputs.DOCKER_IMAGE_TAG }}
       SOURCE_EVENT_BUS_NAME: ${{ inputs.SOURCE_EVENT_BUS_NAME }}
       SOURCE_EVENT_SOURCES: ${{ inputs.SOURCE_EVENT_SOURCES }}
       SOURCE_EVENT_BUCKET_NAME: ${{ inputs.SOURCE_EVENT_BUCKET_NAME }}
