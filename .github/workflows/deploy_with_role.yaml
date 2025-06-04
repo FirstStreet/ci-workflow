@@ -77,7 +77,9 @@ jobs:
       - name: Set outputs
         id: vars
         run: echo "sha_short=$(git rev-parse --short=4 HEAD)" >> $GITHUB_OUTPUT
-        
+
+      - name: debug
+        run: aws sts get-caller-identity
       - name: AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4.0.3
         with:
@@ -93,9 +95,9 @@ jobs:
       - name: Deploy
         run: |
           aws eks update-kubeconfig --name ${{ inputs.eks_cluster }}
-          
+
           kubectl get svc
-          
+
           if [[ $USE_SSM == true ]]; then
             helm plugin remove ssm || true
             helm plugin add https://github.com/seripap/helm-ssm || true
