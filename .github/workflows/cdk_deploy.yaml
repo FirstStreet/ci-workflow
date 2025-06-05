@@ -154,6 +154,11 @@ on:
         required: true
       GHCR_TOKEN:
         required: false
+      # Secrets for AWS Batch Job Definition, format: "name1:secretArn1 name2:secretArn2 ..."
+      # ex for Felis: 
+      # "PGHOST:arn:aws:secretsmanager:us-east-1:276656326065:secret:felis/postgresql-GHD7F5:PGHOST:: PGUSER:arn:aws:secretsmanager:us-east-1:276656326065:secret:felis/postgresql-GHD7F5:PGUSER:: ..."
+      BATCH_JOB_DEF_SECRET:
+        required: false
 
 jobs:
   Build:
@@ -183,6 +188,7 @@ jobs:
       BATCH_SUBNET_IDS: ${{ inputs.BATCH_SUBNET_IDS }}
       BATCH_SECURITY_GROUP_IDS: ${{ inputs.BATCH_SECURITY_GROUP_IDS }}
       BATCH_JOB_COMMAND: ${{ inputs.BATCH_JOB_COMMAND }}
+      BATCH_JOB_DEF_SECRET: ${{ secrets.BATCH_JOB_DEF_SECRET }}
       BATCH_DISK_STORAGE: ${{ inputs.BATCH_DISK_STORAGE }}
       BATCH_RUNTIME_CPU: ${{ inputs.BATCH_RUNTIME_CPU }}
       BATCH_DOCKERFILE_PATH: ${{ inputs.BATCH_DOCKERFILE_PATH }}
