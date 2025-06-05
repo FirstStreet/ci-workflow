@@ -251,7 +251,7 @@ jobs:
         run: |
           export COMPONENT=ecr
           cd ${{ inputs.subtree_path }} 
-          cdk deploy --require-approval never --app "go mod download && go run ./deployments/deployModels.go ./deployments/helpers.go ./deployments/deploy.go"
+          cdk deploy --require-approval never --app "go mod download && go run ./deployments/deploy_models.go ./deployments/helpers.go ./deployments/deploy.go"
           cd ..
       
       - name: Deploy Docker
@@ -259,7 +259,7 @@ jobs:
         run: |
           export COMPONENT=docker
           cd ${{ inputs.subtree_path }} 
-          cdk deploy --require-approval never --app "go mod download && go run ./deployments/deployModels.go ./deployments/helpers.go ./deployments/deploy.go"
+          cdk deploy --require-approval never --app "go mod download && go run ./deployments/deploy_models.go ./deployments/helpers.go ./deployments/deploy.go"
           cd ..
 
       - name: Deploy Docker Lambda
@@ -267,7 +267,7 @@ jobs:
         run: |
           export COMPONENT=dockerlambda
           cd ${{ inputs.subtree_path }}
-          cdk deploy --require-approval never --app "go mod download && go run ./deployments/deployModels.go ./deployments/helpers.go ./deployments/deploy.go"
+          cdk deploy --require-approval never --app "go mod download && go run ./deployments/deploy_models.go ./deployments/helpers.go ./deployments/deploy.go"
           cd ..
 
       - name: Deploy Batch
@@ -275,7 +275,7 @@ jobs:
         run: |
           export COMPONENT=batch
           cd ${{ inputs.subtree_path }} 
-          cdk deploy --require-approval never --app "go mod download && go run ./deployments/deployModels.go ./deployments/helpers.go ./deployments/deploy.go"
+          cdk deploy --require-approval never --app "go mod download && go run ./deployments/deploy_models.go ./deployments/helpers.go ./deployments/deploy.go"
           cd ..
 
       - name: Deploy Batch with Event Bridge Rule
@@ -283,7 +283,7 @@ jobs:
         run: |
           export COMPONENT=eventbridgebatch
           cd ${{ inputs.subtree_path }}
-          cdk deploy --require-approval never --app "go mod download && go run ./deployments/deployModels.go ./deployments/helpers.go ./deployments/deploy.go"
+          cdk deploy --require-approval never --app "go mod download && go run ./deployments/deploy_models.go ./deployments/helpers.go ./deployments/deploy.go"
           cd ..
 
       - name: Deploy Event Lambda Rule
@@ -294,7 +294,7 @@ jobs:
           chmod +x ./${{ inputs.LAMBDA_ASSET_PATH }}/bootstrap
           export COMPONENT=eventrulesimplelambda
           cd ${{ inputs.subtree_path }} 
-          cdk deploy --require-approval never --app "go mod download && go run ./deployments/deployModels.go ./deployments/helpers.go ./deployments/deploy.go"
+          cdk deploy --require-approval never --app "go mod download && go run ./deployments/deploy_models.go ./deployments/helpers.go ./deployments/deploy.go"
           cd ..
 
       - name: Deploy S3
@@ -302,5 +302,5 @@ jobs:
         run: |
           export COMPONENT=s3
           cd ${{ inputs.subtree_path }} 
-          cdk deploy --require-approval never --app "go mod download && go run ./deployments/deployModels.go ./deployments/helpers.go ./deployments/deploy.go"
+          cdk deploy --require-approval never --app "go mod download && go run ./deployments/deploy_models.go ./deployments/helpers.go ./deployments/deploy.go"
           cd ..
