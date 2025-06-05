@@ -154,6 +154,9 @@ on:
         required: true
       GHCR_TOKEN:
         required: false
+      # Secrets for AWS Batch Job Definition, format: "name1:secretArn1 name2:secretArn2 ..."
+      # ex for Felis: 
+      # "PGHOST:arn:aws:secretsmanager:us-east-1:276656326065:secret:felis/postgresql-GHD7F5:PGHOST:: PGUSER:arn:aws:secretsmanager:us-east-1:276656326065:secret:felis/postgresql-GHD7F5:PGUSER:: ..."
       BATCH_JOB_DEF_SECRET:
         required: false
 
