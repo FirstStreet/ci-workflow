@@ -91,9 +91,15 @@ on:
       LAMBDA_ENV_VARS:
         required: false
         type: string
+      LAMBDA_DESCRIPTION:
+        required: false
+        type: string
       LAMBDA_RUNTIME_ARCH:
         required: false
         type: string
+      LAMBDA_MEMORY_SIZE:
+        required: false
+        type: number
       LAMBDA_VPC_NAME:
         required: false
         type: string
@@ -177,7 +183,9 @@ jobs:
       LAMBDA_ASSET_PATH: ${{ inputs.LAMBDA_ASSET_PATH }}
       LAMBDA_DOCKERFILE_PATH: ${{ inputs.LAMBDA_DOCKERFILE_PATH }}
       LAMBDA_HANDLER_NAME: ${{ inputs.LAMBDA_HANDLER_NAME }}
+      LAMBDA_DESCRIPTION: ${{ inputs.LAMBDA_DESCRIPTION }}
       LAMBDA_RUNTIME_ARCH: ${{ inputs.LAMBDA_RUNTIME_ARCH}}
+      LAMBDA_MEMORY_SIZE: $${{ inputs.LAMBDA_MEMORY_SIZE }}
       LAMBDA_VPC_NAME: ${{ inputs.LAMBDA_VPC_NAME }}
       LAMBDA_TIMEOUT_IN_SECONDS: ${{ inputs.LAMBDA_TIMEOUT_IN_SECONDS }}
       LAMBDA_ENV_VARS: ${{ inputs.LAMBDA_ENV_VARS }}
