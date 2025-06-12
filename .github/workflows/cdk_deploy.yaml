@@ -103,7 +103,7 @@ on:
       LAMBDA_VPC_NAME:
         required: false
         type: string
-      LAMBDA_CUSTOM_IAM_POLICY:
+      LAMBDA_CUSTOM_IAM_POLICY_FILE:
         required: false
         type: string
       EVENT_RULE_NAME:
@@ -190,7 +190,6 @@ jobs:
       LAMBDA_RUNTIME_ARCH: ${{ inputs.LAMBDA_RUNTIME_ARCH}}
       LAMBDA_MEMORY_SIZE_MB: ${{ inputs.LAMBDA_MEMORY_SIZE_MB }}
       LAMBDA_VPC_NAME: ${{ inputs.LAMBDA_VPC_NAME }}
-      LAMBDA_CUSTOM_IAM_POLICY: ${{ inputs.LAMBDA_CUSTOM_IAM_POLICY }}
       LAMBDA_TIMEOUT_IN_SECONDS: ${{ inputs.LAMBDA_TIMEOUT_IN_SECONDS }}
       LAMBDA_ENV_VARS: ${{ inputs.LAMBDA_ENV_VARS }}
       ACCOUNT_ID: ${{ inputs.ACCOUNT_ID }}
@@ -277,6 +276,10 @@ jobs:
       - name: Deploy Docker Lambda
         if: ${{ inputs.deploy_docker_lambda }}
         run: |
+          if [ -f "${{ inputs.LAMBDA_CUSTOM_IAM_POLICY }}" ]; then
+            echo "Found custom IAM policy file. Contents will be passed into the LAMBDA_CUSTOM_IAM_POLICY env variable"
+            export LAMBDA_CUSTOM_IAM_POLICY=$(cat "${{ inputs.LAMBDA_CUSTOM_IAM_POLICY }}")
+          fi
           export COMPONENT=dockerlambda
           cd ${{ inputs.subtree_path }}
           cdk deploy --require-approval never --app "go mod download && go run ./deployments/deploy_models.go ./deployments/helpers.go ./deployments/deploy.go"
