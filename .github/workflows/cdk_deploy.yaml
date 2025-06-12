@@ -88,9 +88,6 @@ on:
       LAMBDA_TIMEOUT_IN_SECONDS:
         required: false
         type: string
-      LAMBDA_ENV_VARS:
-        required: false
-        type: string
       LAMBDA_DESCRIPTION:
         required: false
         type: string
@@ -101,6 +98,9 @@ on:
         required: false
         type: number
       LAMBDA_VPC_NAME:
+        required: false
+        type: string
+      LAMBDA_CUSTOM_IAM_POLICY:
         required: false
         type: string
       EVENT_RULE_NAME:
@@ -188,7 +188,7 @@ jobs:
       LAMBDA_MEMORY_SIZE_MB: ${{ inputs.LAMBDA_MEMORY_SIZE_MB }}
       LAMBDA_VPC_NAME: ${{ inputs.LAMBDA_VPC_NAME }}
       LAMBDA_TIMEOUT_IN_SECONDS: ${{ inputs.LAMBDA_TIMEOUT_IN_SECONDS }}
-      LAMBDA_ENV_VARS: ${{ inputs.LAMBDA_ENV_VARS }}
+      LAMBDA_CUSTOM_IAM_POLICY: ${{ inputs.LAMBDA_CUSTOM_IAM_POLICY }}
       ACCOUNT_ID: ${{ inputs.ACCOUNT_ID }}
       REGION: ${{ inputs.aws_region }}
       BATCH_CLUSTER_TYPE: ${{ inputs.BATCH_CLUSTER_TYPE }}
