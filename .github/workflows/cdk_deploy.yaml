@@ -88,6 +88,9 @@ on:
       LAMBDA_TIMEOUT_IN_SECONDS:
         required: false
         type: string
+      LAMBDA_ENV_VARS:
+        required: false
+        type: string
       LAMBDA_DESCRIPTION:
         required: false
         type: string
@@ -187,8 +190,9 @@ jobs:
       LAMBDA_RUNTIME_ARCH: ${{ inputs.LAMBDA_RUNTIME_ARCH}}
       LAMBDA_MEMORY_SIZE_MB: ${{ inputs.LAMBDA_MEMORY_SIZE_MB }}
       LAMBDA_VPC_NAME: ${{ inputs.LAMBDA_VPC_NAME }}
-      LAMBDA_TIMEOUT_IN_SECONDS: ${{ inputs.LAMBDA_TIMEOUT_IN_SECONDS }}
       LAMBDA_CUSTOM_IAM_POLICY: ${{ inputs.LAMBDA_CUSTOM_IAM_POLICY }}
+      LAMBDA_TIMEOUT_IN_SECONDS: ${{ inputs.LAMBDA_TIMEOUT_IN_SECONDS }}
+      LAMBDA_ENV_VARS: ${{ inputs.LAMBDA_ENV_VARS }}
       ACCOUNT_ID: ${{ inputs.ACCOUNT_ID }}
       REGION: ${{ inputs.aws_region }}
       BATCH_CLUSTER_TYPE: ${{ inputs.BATCH_CLUSTER_TYPE }}
