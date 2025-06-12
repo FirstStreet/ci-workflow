@@ -276,9 +276,9 @@ jobs:
       - name: Deploy Docker Lambda
         if: ${{ inputs.deploy_docker_lambda }}
         run: |
-          if [ -f "${{ inputs.LAMBDA_CUSTOM_IAM_POLICY }}" ]; then
+          if [ -f "${{ inputs.LAMBDA_CUSTOM_IAM_POLICY_FILE }}" ]; then
             echo "Found custom IAM policy file. Contents will be passed into the LAMBDA_CUSTOM_IAM_POLICY env variable"
-            export LAMBDA_CUSTOM_IAM_POLICY=$(cat "${{ inputs.LAMBDA_CUSTOM_IAM_POLICY }}")
+            export LAMBDA_CUSTOM_IAM_POLICY=$(cat "${{ inputs.LAMBDA_CUSTOM_IAM_POLICY_FILE }}")
           fi
           export COMPONENT=dockerlambda
           cd ${{ inputs.subtree_path }}
