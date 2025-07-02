@@ -146,6 +146,15 @@ on:
         description: "Relative path to Dockerfile against root, default is the Dockerfile under root, other ex: jobs/stats_refresh/Dockerfile"
         required: false
         type: string
+      BATCH_JOB_RETRIES:
+        required: false
+        type: number
+      BATCH_JOB_MEMORY_MB:
+        required: false
+        type: number
+      BATCH_JOB_TIMEOUT_SECONDS:
+        required: false
+        type: number
       S3_BUCKET_NAME_PREFIX:
         description: "Prefix of the S3 bucket, env or additional static values will be appended to this prefix"
         required: false
@@ -200,6 +209,9 @@ jobs:
       BATCH_SECURITY_GROUP_IDS: ${{ inputs.BATCH_SECURITY_GROUP_IDS }}
       BATCH_JOB_COMMAND: ${{ inputs.BATCH_JOB_COMMAND }}
       BATCH_JOB_DEF_SECRET: ${{ secrets.BATCH_JOB_DEF_SECRET }}
+      BATCH_JOB_RETRIES: ${{ inputs.BATCH_JOB_RETRIES }}
+      BATCH_JOB_MEMORY_MB: ${{ inputs.BATCH_JOB_MEMORY_MB }}
+      BATCH_JOB_TIMEOUT_SECONDS: ${{ inputs.BATCH_JOB_TIMEOUT_SECONDS }}
       BATCH_DISK_STORAGE: ${{ inputs.BATCH_DISK_STORAGE }}
       BATCH_RUNTIME_CPU: ${{ inputs.BATCH_RUNTIME_CPU }}
       BATCH_DOCKERFILE_PATH: ${{ inputs.BATCH_DOCKERFILE_PATH }}
